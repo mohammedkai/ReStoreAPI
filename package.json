@@ -27,7 +27,7 @@
     "cluster": "^0.7.7",
     "cors": "^2.8.5",
     "domain": "0.0.1",
-    "dotenv": "^8.2.0",
+    "dotenv": "^8.6.0",
     "eslint-plugin-markdown": "^1.0.2",
     "express": "^4.17.1",
     "express-http-context": "^1.2.4",
