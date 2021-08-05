@@ -54,11 +54,9 @@ async function simpleExecute(statement, binds = [], numberOutCur, poolAlias, opt
     }
     const values = await Promise.all(promises);
     return values;
-  }
-  catch (error) {
+  } catch (error) {
     return error;
-  }
-  finally {
+  } finally {
     if (connectionObject) {
       try {
         await connectionObject.close();
