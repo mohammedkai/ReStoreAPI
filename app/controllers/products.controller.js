@@ -23,7 +23,6 @@ productExpress.use(bodyparser.json());
  *       500:
  *         description: Internal Server Error.
  */
-let conn;
 productExpress.get('/getAllProduct', async (req, res, next) => {
   try {
     await dbSvc.initialize();
@@ -40,7 +39,7 @@ productExpress.get('/getAllProduct', async (req, res, next) => {
   try {
     const allProducts = await dbSvc.simpleExecute(query, binds, 1, 'default');
     console.log(`DB Object returned: ${JSON.stringify(allProducts)}`);
-    res.status(200).send(allProducts);
+    res.status(200).send(allProducts.ref_cur_0[0]);
   } catch (err) {
     console.log(`${err.message}`);
     console.log(`${err.stack}`);
@@ -89,8 +88,8 @@ productExpress.get('/getProductDetailsById/:prodId', async (req, res, next) => {
     };
     try {
       const productDetails = await dbSvc.simpleExecute(query, binds, 2, 'default');
-      console.log(`DB Object returned: ${JSON.stringify(productDetails)}`);
-      res.status(200).send(productDetails);
+      productDetails.ref_cur_0[0][0]['Specs'] = productDetails.ref_cur_1[0];
+      res.status(200).send(productDetails.ref_cur_0[0][0]);
     } catch (err) {
       console.log(`${err.message}`);
       console.log(`${err.stack}`);
@@ -98,6 +97,38 @@ productExpress.get('/getProductDetailsById/:prodId', async (req, res, next) => {
     }
   } else {
     res.status(500).send({ errorCode: 500, errorMessage: 'Invalid Product Id' });
+  }
+});
+
+productExpress.get('/getAllProductBySubcategory/:subCategoryId', async (req, res, next) => {
+  const subcatId = req.params.subCategoryId;
+  await dbSvc.initialize();
+  const query = 'BEGIN sp_getproduct_by_subcategory(:subcatid, :ref_cur_0); END;';
+  const binds = {
+    subcatid: subcatId,
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
+  try {
+    const productList = await dbSvc.simpleExecute(query, binds, 1, 'default');
+    res.status(200).send(productList.ref_cur_0[0]);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+productExpress.get('/getAllProductByCategoryId/:categoryId', async (req, res, next) => {
+  const catid = req.params.categoryId;
+  await dbSvc.initialize();
+  const query = 'BEGIN sp_getallproductsby_categoryid(:categoryid, :ref_cur_0); END;';
+  const binds = {
+    categoryid: catid,
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
+  try {
+    const productListbyCategoty = await dbSvc.simpleExecute(query, binds, 1, 'default');
+    res.status(200).send(productListbyCategoty.ref_cur_0[0]);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
 

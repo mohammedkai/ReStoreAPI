@@ -45,15 +45,19 @@ async function simpleExecute(statement, binds = [], numberOutCur, poolAlias, opt
     connectionObject = await oracledb.getConnection(poolAlias);
     const finalResult = {};
     const result = await connectionObject.execute(statement, binds, opts);
-    const promises = [];
+    let promises = [];
 
     for (let idx = 0; idx < numberOutCur; idx++) {
       const refCurName = `ref_cur_${idx}`;
       promises.push(fetchRowsFromRS(connectionObject, result.outBinds[refCurName], numRows));
+      const resultRows = await Promise.all(promises);
       respArr = [];
+      finalResult[refCurName] = resultRows;
+      promises = [];
     }
-    const values = await Promise.all(promises);
-    return values;
+    return finalResult;
+    // const values = await Promise.all(promises);
+    // return values;
   } catch (error) {
     return error;
   } finally {

@@ -26,7 +26,7 @@ const User = function (user) {
 };
 
 function insertUser(user, callback) {
-  const sql = 'INSERT INTO users (FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,ISACTIVE,ROLE,PASSWORD,UUID) values (:firstname, :middleName, :lastName,:login, :isActive, :role,:password,:uuid)';
+  const sql = 'INSERT INTO users (FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,ISACTIVE,ROLE_ID,PASSWORD,UUID) values (:firstname, :middleName, :lastName,:login, :isActive, :role,:password,:uuid)';
   db.doConnect((err, connection) => {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
     if (err) {
@@ -165,7 +165,7 @@ function updateFireBaseToken(user, callback) {
 }
 
 function getDetails(uuid, callback) {
-  const sql = "Select FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,to_char(LAST_LOGIN,'DD-MM-YYYY HH:MM:SS PM') as LAST_LOGIN from users where UUID=:uuid and ISACTIVE=1 ";
+  const sql = "Select ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,to_char(LAST_LOGIN,'DD-MM-YYYY HH:MM:SS PM') as LAST_LOGIN from users where UUID=:uuid and ISACTIVE=1 ";
   db.doConnect((err, connection) => {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
     if (err) {
