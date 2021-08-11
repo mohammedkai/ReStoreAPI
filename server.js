@@ -13,6 +13,8 @@ const worker = require('./app/routes/worker.route');
 const fireBase = require('./app/controllers/firebase.controller');
 const products = require('./app/controllers/products.controller');
 const cart = require('./app/controllers/cart.controller');
+const useraddress = require('./app/controllers/useraddress.controller');
+const userorder = require('./app/controllers/orders.controller');
 const ip = require("ip");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -117,7 +119,9 @@ const setUpExpress = () => {
   app.use('/category', category);
   app.use('/products', products);
   app.use('/carts', cart);
-
+  app.use('/addresses', useraddress);
+  app.use('/orders', userorder);
+  
   
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
