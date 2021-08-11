@@ -15,6 +15,7 @@ const products = require('./app/controllers/products.controller');
 const cart = require('./app/controllers/cart.controller');
 const useraddress = require('./app/controllers/useraddress.controller');
 const userorder = require('./app/controllers/orders.controller');
+const payments = require('./app/controllers/payment.controller');
 const ip = require("ip");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -121,7 +122,7 @@ const setUpExpress = () => {
   app.use('/carts', cart);
   app.use('/addresses', useraddress);
   app.use('/orders', userorder);
-  
+  app.use('/payments', payments);
   
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
