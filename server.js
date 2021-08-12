@@ -16,12 +16,14 @@ const cart = require('./app/controllers/cart.controller');
 const useraddress = require('./app/controllers/useraddress.controller');
 const userorder = require('./app/controllers/orders.controller');
 const payments = require('./app/controllers/payment.controller');
+const userscontroller = require('./app/controllers/users.controller');
 const ip = require("ip");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const { swaggerSetup } = require('./app/config/swaggerSetup');
 const category = require('./app/routes/category.routes');
 const authJwt = require('./app/middleware/authJwt');
+const { auth } = require('firebase-admin');
 
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', (uncaughtExc) => {
@@ -115,14 +117,16 @@ const setUpExpress = () => {
 
   // adding routes
   app.use('/user', user);
+  app.use('/users', userscontroller);
   app.use('/clustering', worker);
-  app.use('/fireBase', fireBase);
-  app.use('/category', category);
-  app.use('/products', products);
-  app.use('/carts', cart);
-  app.use('/addresses', useraddress);
-  app.use('/orders', userorder);
-  app.use('/payments', payments);
+  app.use('/fireBase', authJwt, fireBase);
+  app.use('/category', authJwt, category);
+  app.use('/products', authJwt, products);
+  app.use('/carts', authJwt, cart);
+  app.use('/addresses', authJwt, useraddress);
+  app.use('/orders', authJwt, userorder);
+  app.use('/payments', authJwt, payments);
+  
   
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
