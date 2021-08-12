@@ -21,6 +21,7 @@ const User = function (user) {
   this.authId = user.authId;
   this.newPassword = user.newPassword;
   this.fcmToken = user.fcmToken;
+  this.phonenumber = user.phonenumber;
 };
 
 function insertUser(user, callback) {
@@ -174,7 +175,7 @@ function updateFireBaseToken(user, callback) {
 }
 
 function getDetails(uuid, callback) {
-  const sql = "Select ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,to_char(LAST_LOGIN,'DD-MM-YYYY HH:MM:SS PM') as LAST_LOGIN from users where UUID=:uuid and ISACTIVE=1 ";
+  const sql = "Select ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,PHONENUMBER,to_char(LAST_LOGIN,'DD-MM-YYYY HH:MM:SS PM') as LAST_LOGIN from users where UUID=:uuid and ISACTIVE=1 ";
   db.doConnect((err, connection) => {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
     if (err) {
