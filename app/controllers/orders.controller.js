@@ -7,9 +7,9 @@ const dbSvc = require('../config/db_svc.js');
 const orderExpress = express();
 
 orderExpress.post('/submitOrder', async (req, res, next) => {
-  const sql = 'CALL sp_create_order(:user_id, :user_address_id, :order_id_status, :razor_payment_id)';
+  const sql = 'CALL sp_create_order(:userid, :user_address_id, :order_id_status, :razor_payment_id)';
   const order_data_binds = {
-    user_id: req.body.user_id,
+    userid: req.body.user_id,
     user_address_id: req.body.address_id,
     order_id_status: req.body.order_id_status,
     razor_payment_id: req.body.razor_payment_id
@@ -41,10 +41,10 @@ orderExpress.post('/submitOrder', async (req, res, next) => {
 
 orderExpress.post('/getAllOrders', async (req, res, next) => {
   await dbSvc.initialize();
-  const orderlistsql = 'CALL sp_get_order_details(:user_id, :ref_cur_0)';
+  const orderlistsql = 'CALL sp_get_order_details(:userid, :ref_cur_0)';
   const orderproductlistsql = 'CALL sp_get_product_from_orders(:orderid, :ref_cur_0)';
   const order_list_binds = {
-    user_id: req.body.user_id,
+    userid: req.body.user_id,
     ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
   };
   var orderListJson = [];

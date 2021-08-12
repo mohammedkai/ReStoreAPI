@@ -65,9 +65,10 @@ paymentExpress.post("/createRazorPayOrder", async (req, res) => {
             id: response.id,
             currency: response.currency,
             amount: response.amount,
+            isSuccess: true
         });
     } catch (err) {
-        res.status(200).send({ message: 500, isSuccess: false });
+        res.status(500).send({ message: 500, isSuccess: false });
     }
 });
 
