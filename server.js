@@ -123,7 +123,7 @@ const setUpExpress = () => {
   app.use('/category', authJwt, category);
   app.use('/products', authJwt, products);
   app.use('/carts', authJwt, cart);
-  app.use('/addresses', authJwt, useraddress);
+  app.use('/addresses',authJwt, useraddress);
   app.use('/orders', authJwt, userorder);
   app.use('/payments', authJwt, payments);
   
