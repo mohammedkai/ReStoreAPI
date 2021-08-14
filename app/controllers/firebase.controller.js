@@ -16,7 +16,45 @@ const notificationOptions = {
   timeToLive: 60 * 60 * 24,
 };
 
+/**
+ * @swagger
+ * /fireBase/notification/singleuser:
+ *   post:
+ *     tags:
+ *       - Notification
+ *     name: Send notification
+ *     summary: Send notification to single user.
+ *     consumes:
+ *       - application/json
+ *     requestBody:
+ *       description: Add body to your notification with token.
+ *       required: true
+ *       content:
+ *        application/json:
+ *         schema:
+ *           type: object
+ *           properties:
+ *             title:
+ *               type: string
+ *             messagebody:
+ *               type: string
+ *             registrationToken:
+ *               type: string
+ *         required:
+ *           - title
+ *           - messagebody
+ *           - registrationToken
+ *     responses:
+ *       200:
+ *         description: Notification was send
+ *       500:
+ *         description: Internal Server Error
+ *       409:
+ *         description: Something went wrong
+ */
+
 app.post('/notification/singleuser', (req, res, next) => {
+  console.log(req);
   const options = notificationOptions;
   const messagee = {
     notification: {

@@ -3,8 +3,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const uuid = require('node-uuid');
 const db = require('../dbconnections/oracledb.js');
-const connection = require('../dbconnections/db.js');
-
 const saltingRounds = process.env.SALTING_ROUNDS;
 let refreshTokens = [];
 const jwtKey = process.env.JWT_SECRET;
@@ -23,38 +21,50 @@ const User = function (user) {
   this.authId = user.authId;
   this.newPassword = user.newPassword;
   this.fcmToken = user.fcmToken;
+  this.phonenumber = user.phonenumber;
 };
 
 function insertUser(user, callback) {
-  const sql = 'INSERT INTO users (FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,ISACTIVE,ROLE,PASSWORD,UUID) values (:firstname, :middleName, :lastName,:login, :isActive, :role,:password,:uuid)';
-  db.doConnect((err, connection) => {
-    console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
-    if (err) {
-      console.log('ERROR: Unable to get a connection ');
-      return callback(err);
-    }
-    db.doExecute(
-      connection, sql,
-      {
-        firstName: user.firstName,
-        middleName: user.middleName,
-        lastName: user.lastName,
-        login: user.login,
-        isActive: user.isActive,
-        role: user.role,
-        password: user.password,
-        uuid: uuid.v4(),
-      }, // PASS BIND PARAMS IN HERE - SEE ORACLEDB DOCS
-      (err, res) => {
-        if (err) {
-          db.doRelease(connection); // RELEASE CONNECTION
-          return callback(err); // ERROR
+  //const sql = 'INSERT INTO users (FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,ISACTIVE,ROLE_ID,PASSWORD,UUID) values (:firstname, :middleName, :lastName,:login, :isActive, :role,:password,:uuid)';
+  const sql = 'CALL sp_register_new_user(:firstname, :lastname, :phone_name, :user_password,:email_id,:userrole,:udid,:res)';
+  const reg_user_binds = {
+    firstname: user.firstName,
+    lastname: user.lastName,
+    phone_name: "7039508",
+    user_password: user.password,
+    email_id: user.login,
+    userrole: user.role,
+    udid: uuid.v4(),
+    res: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+  };
+  const options = {};
+
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(sql, reg_user_binds, options);
+        if (result != null) {
+          return callback(null, { message: 'User created successfully.', isSuccess: true });
         }
-        db.doRelease(connection); // RELEASE CONNECTION
-        return callback(null, { message: 'User created successfully.', isSuccess: true }); // ALL IS GOOD
-      },
-    );
-  });
+        else {
+          return callback(null, { message: 'Database error', isSuccess: false });
+        }
+      } catch (err) {
+        return callback(err);
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            return callback(err);
+          }
+        }
+      }
+    });
+  }
+  catch (err) {
+    return callback(err);
+  }
 }
 
 function authenticateUser(user, callback) {
@@ -165,7 +175,7 @@ function updateFireBaseToken(user, callback) {
 }
 
 function getDetails(uuid, callback) {
-  const sql = "Select FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,to_char(LAST_LOGIN,'DD-MM-YYYY HH:MM:SS PM') as LAST_LOGIN from users where UUID=:uuid and ISACTIVE=1 ";
+  const sql = "Select ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,PHONENUMBER,to_char(LAST_LOGIN,'DD-MM-YYYY HH:MM:SS PM') as LAST_LOGIN from users where UUID=:uuid and ISACTIVE=1 ";
   db.doConnect((err, connection) => {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
     if (err) {
