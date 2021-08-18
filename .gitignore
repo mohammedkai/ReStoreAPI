@@ -114,3 +114,5 @@ dist
 .yarn/install-state.gz
 .pnp.*node_modules/ 
 /.vs/slnx.sqlite
+.vs/ReStoreAPI/v16/.suo
+.vs/VSWorkspaceState.json

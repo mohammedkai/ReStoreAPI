@@ -40,6 +40,7 @@ async function fetchRowsFromRS(connection, resultSet, numRows) {
 
 async function simpleExecute(statement, binds = [], numberOutCur, poolAlias, opts = {}) {
   try {
+    await initialize();
     opts.outFormat = oracledb.OBJECT;
     opts.autoCommit = true;
     connectionObject = await oracledb.getConnection(poolAlias);

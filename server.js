@@ -119,9 +119,9 @@ const setUpExpress = () => {
   app.use('/user', user);
   app.use('/users', userscontroller);
   app.use('/clustering', worker);
-  app.use('/fireBase', authJwt, fireBase);
-  app.use('/category', authJwt, category);
-  app.use('/products', authJwt, products);
+  app.use('/fireBase', fireBase);
+  app.use('/category', category);
+  app.use('/products', products);
   app.use('/carts', authJwt, cart);
   app.use('/addresses',authJwt, useraddress);
   app.use('/orders', authJwt, userorder);
@@ -162,4 +162,4 @@ const setupServer = (isClusterRequired) => {
   }
 };
 
-setupServer(true);
+setupServer(false);

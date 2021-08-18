@@ -118,7 +118,7 @@ productExpress.get('/getAllProductBySubcategory/:subCategoryId', async (req, res
 
 productExpress.get('/getAllProductByCategoryId/:categoryId', async (req, res, next) => {
   const catid = req.params.categoryId;
-  await dbSvc.initialize();
+  //await dbSvc.initialize();
   const query = 'BEGIN sp_getallproductsby_categoryid(:categoryid, :ref_cur_0); END;';
   const binds = {
     categoryid: catid,
@@ -131,5 +131,86 @@ productExpress.get('/getAllProductByCategoryId/:categoryId', async (req, res, ne
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
+
+
+
+productExpress.get('/sp_get_all_masters', async (req, res, next) => {
+  const query = 'BEGIN sp_get_all_masters(:ref_cur_0,:ref_cur_1,:ref_cur_2,:ref_cur_3); END;';
+  const binds = {
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+    ref_cur_1: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+    ref_cur_2: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+    ref_cur_3: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
+  try {
+    const getallMasters = await dbSvc.simpleExecute(query, binds, 4, 'default');
+    if (getallMasters != null && getallMasters.errorNum != 28547) {
+      res.status(200).send({
+        "Categories": getallMasters.ref_cur_0[0],
+        "SubCategories": getallMasters.ref_cur_1[0],
+        "ConditionMaster": getallMasters.ref_cur_2[0],
+        "BrandMaster": getallMasters.ref_cur_3[0]
+      });
+    } else {
+      res.status(201).send({ errorCode: 201, errorMessage: 'No data returned' });
+    }
+  } catch (err) {
+    console.log(`${err.message}`);
+    console.log(`${err.stack}`);
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+productExpress.post('/listnewproduct', async (req, res, next) => {
+  var productName = req.body.productName;
+  var categoryId = req.body.categoryID;
+  var subCategoryId = req.body.subCategoryID;
+  var productPrice = req.body.price;
+  var brandId = req.body.brandID;
+  var stock = req.body.stock;
+  var imageKey = req.body.imageKey;
+  var warranty = req.body.warrantyInMonths;
+  var desc = req.body.description;
+  var modelNo = req.body.modelNo;
+  var isDeliveryPaid = req.body.isDeliveryApplication;
+  var deliveryCharge = req.body.deliveryCharge;
+  var condition = req.body.conditionID;
+  var sellerId = req.body.sellerID;
+  const listProductQuery = 'CALL sp_add_new_product(:discountedprice, :brandid, :qty, :categoryid,:subcategoryid,:imageid,:productname,:manufacturerid,:warrantyinmonths,:modelno,:prodesc,:isdelchargeapplication,:deliverycharge,:conditionid,:sellersid)';
+
+  const productbindings = {
+    discountedprice: productPrice,
+    brandid: brandId,
+    qty: stock,
+    categoryid: categoryId,
+    subcategoryid: subCategoryId,
+    imageid: imageKey,
+    productname: productName,
+    manufacturerid: 1,
+    warrantyinmonths: warranty,
+    modelno: modelNo,
+    prodesc: desc,
+    isdelchargeapplication: isDeliveryPaid,
+    deliverycharge: deliveryCharge,
+    conditionid: condition,
+    sellersid: sellerId
+  };
+
+  const options = {};
+
+  try {
+    db.doConnect(async (err, connection) => {
+      const result = await connection.execute(listProductQuery, productbindings, options);
+      res.status(200).send({ message: 'Order has been submitted', isSuccess: true });
+    });
+  }
+  catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err, isSuccess: false });
+  }
+
+  //  const result = await connection.execute(listProductQuery, productbindings, options);
+  // res.status(200).send({ message: 'Order has been submitted', isSuccess: true });
+});
+
 
 module.exports = productExpress;
