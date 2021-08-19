@@ -125,7 +125,7 @@ const setUpExpress = () => {
   app.use('/carts', authJwt, cart);
   app.use('/addresses',authJwt, useraddress);
   app.use('/orders', authJwt, userorder);
-  app.use('/payments', authJwt, payments);
+  app.use('/payments', payments);
   
   
   app.use((err, req, res, next) => {
@@ -162,4 +162,4 @@ const setupServer = (isClusterRequired) => {
   }
 };
 
-setupServer(false);
+setupServer(true);
