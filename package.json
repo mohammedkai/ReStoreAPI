@@ -20,6 +20,7 @@
   "author": "mohammedkapadia",
   "license": "ISC",
   "dependencies": {
+    "@azure/storage-blob": "^12.7.0",
     "app-root-path": "^3.0.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
