@@ -125,4 +125,8 @@ app.post('/notification/notifytopics', (req, res, next) => {
     });
 });
 
+app.get('/sendsms', (req, res, next) => {
+  admin.auth().verifyPhoneNumber('9870897390');
+});
+
 module.exports = app;

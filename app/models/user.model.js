@@ -69,7 +69,8 @@ function insertUser(user, callback) {
 
 function authenticateUser(user, callback) {
   const sql = 'Select PASSWORD,UUID from users where login=:login and ISACTIVE=1 ';
-  db.doConnect((err, connection) => {
+  db.doConnect((err, connection) => 
+  {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
     if (err) {
       console.log('ERROR: Unable to get a connection ');

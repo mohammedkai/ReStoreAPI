@@ -14,10 +14,14 @@ var razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+var instance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+
 paymentExpress.get("/logo.svg", (req, res) => {
     res.sendFile(path.join(__dirname, "logo.svg"));
 });
-
 
 paymentExpress.post("/verification", (req, res) => {
     const secret = razorpay.RAZORPAY_KEY_SECRET;
@@ -25,11 +29,7 @@ paymentExpress.post("/verification", (req, res) => {
     hmac.update('order_Hjw3Tkk2JCIIma' + "|" + 'pay_Hjw3yMEWcUqFsO');
     let generatedSignature = hmac.digest('hex');
     let isSignatureValid = generatedSignature == "51b8bcb3882b613af6d347a5d07f67363c9b983e386a19912ff99a7b4d47ee30";
-
-
-
     console.log(req.body);
-
     const shasum = crypto.createHmac("sha256", secret);
     shasum.update(JSON.stringify(req.body));
     const digest = shasum.digest("hex");
@@ -57,7 +57,6 @@ paymentExpress.post("/createRazorPayOrder", async (req, res) => {
         receipt: shortid.generate(),
         payment_capture,
     };
-
     try {
         const response = await razorpay.orders.create(options);
         console.log(response);
@@ -111,6 +110,51 @@ paymentExpress.post('/addPaymentDetails', async (req, res, next) => {
         }
     } else {
         res.status(500).send({ errorCode: 500, isSuccess: false, errorMessage: err });
+    }
+});
+
+paymentExpress.post('/getPaymentDetailsByPaymentId', async (req, res, next) => {
+    try {
+        const payment_id = req.body.paymentid;
+        var response = await instance.payments.fetch(payment_id);
+        res.status(200).send({ isSuccess: true, data: response });
+    }
+    catch (error) {
+        res.status(500).send({ errorCode: 500, isSuccess: false, errorMessage: error });
+    }
+});
+
+paymentExpress.post('/getPaymentDetailByOrderId', async (req, res, next) => {
+    try {
+        const order_id = req.body.orderid;
+        var response = await instance.orders.fetch(order_id);
+        res.status(200).send({ isSuccess: true, data: response });
+    }
+    catch (error) {
+        res.status(500).send({ errorCode: 500, isSuccess: false, errorMessage: error });
+    }
+});
+
+paymentExpress.post('/downloadInvoice', async (req, res, next) => {
+    try {
+        var response = await instance.invoices.issue(req.body.invoiceId)
+        res.status(200).send({ isSuccess: true, data: response });
+    }
+    catch (error) {
+        res.status(500).send({ errorCode: 500, isSuccess: false, errorMessage: error });
+    }
+});
+
+paymentExpress.post('/orderAmountRefund', async (req, res, next) => {
+    try {
+        const options = {
+            amount: req.body.amount
+        };
+        const razorpayResponse = await instance.payments.refund(req.body.paymentId,options)
+        res.status(200).send({ isSuccess: true, data: razorpayResponse });
+    }
+    catch (error) {
+        res.status(500).send({ errorCode: 500, isSuccess: false, errorMessage: error });
     }
 });
 

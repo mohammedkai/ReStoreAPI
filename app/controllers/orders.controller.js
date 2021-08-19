@@ -17,7 +17,8 @@ orderExpress.post('/submitOrder', async (req, res, next) => {
   // const data = { cartid: 2, productid: 17, qty: 1 };
   const options = {};
   // const binds = Object.assign({}, cart_data, data);
-  try {
+  try 
+  {
     db.doConnect(async (err, connection) => {
       try {
         const result = await connection.execute(sql, order_data_binds, options);
@@ -34,7 +35,9 @@ orderExpress.post('/submitOrder', async (req, res, next) => {
         }
       }
     });
-  } catch (err) {
+  }
+   catch (err) 
+   {
     res.status(500).send({ errorCode: 500, errorMessage: err, isSuccess: false });
   }
 });
