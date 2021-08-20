@@ -24,6 +24,10 @@ const { swaggerSetup } = require('./app/config/swaggerSetup');
 const category = require('./app/routes/category.routes');
 const authJwt = require('./app/middleware/authJwt');
 const { auth } = require('firebase-admin');
+const https = require('https');
+const fs = require('fs');
+
+
 
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', (uncaughtExc) => {
@@ -32,6 +36,10 @@ process.on('uncaughtException', (uncaughtExc) => {
 
 const app = express();
 const workers = [];
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem')
+};
 
 /**
  * Setup number of worker processes to share port which will be defined while setting up server
@@ -137,10 +145,11 @@ const setUpExpress = () => {
     next();
   });
 
+  const server = https.createServer(options, app);
   // set port, listen for requests
   const PORT = process.env.PORT || 8080;
-  app.listen(PORT, () => {
-    console.log(chalk.yellow(`Started server on => http://${ip.address()}:${PORT} for Process Id ${process.pid}`));
+  server.listen(PORT, () => {
+    console.log(chalk.yellow(`Started server on => https://${ip.address()}:${PORT} for Process Id ${process.pid}`));
   });
 
 };
