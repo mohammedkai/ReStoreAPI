@@ -36,10 +36,10 @@ process.on('uncaughtException', (uncaughtExc) => {
 
 const app = express();
 const workers = [];
-const options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem')
-};
+//const options = {
+//  key: fs.readFileSync('key.pem'),
+//  cert: fs.readFileSync('cert.pem')
+//};
 
 /**
  * Setup number of worker processes to share port which will be defined while setting up server
@@ -145,10 +145,10 @@ const setUpExpress = () => {
     next();
   });
 
-  const server = https.createServer(options, app);
+  //const server = https.createServer(options, app);
   // set port, listen for requests
-  const PORT = process.env.PORT || 8080;
-  server.listen(PORT, () => {
+    const PORT = process.env.PORT || 8081;
+    app.listen(PORT, () => {
     console.log(chalk.yellow(`Started server on => https://${ip.address()}:${PORT} for Process Id ${process.pid}`));
   });
 
