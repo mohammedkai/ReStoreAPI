@@ -1,5 +1,4 @@
 {
     "appService.showBuildDuringDeployPrompt": false,
-    "appService.deploySubpath": ".",
-    "appService.defaultWebAppToDeploy": "/subscriptions/727bda24-6629-42b2-baef-a3187bd65ee6/resourceGroups/PPDevelopment/providers/Microsoft.Web/sites/ReStoreAPI"
+    "appService.deploySubpath": "."
 }
