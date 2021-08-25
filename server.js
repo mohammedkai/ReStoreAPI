@@ -17,6 +17,7 @@ const useraddress = require('./app/controllers/useraddress.controller');
 const userorder = require('./app/controllers/orders.controller');
 const payments = require('./app/controllers/payment.controller');
 const userscontroller = require('./app/controllers/users.controller');
+const sellercontroller = require('./app/controllers/seller.controller');
 const ip = require("ip");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -134,6 +135,7 @@ const setUpExpress = () => {
   app.use('/addresses',authJwt, useraddress);
   app.use('/orders', authJwt, userorder);
   app.use('/payments', payments);
+  app.use('/sellers', sellercontroller);
   
   
   app.use((err, req, res, next) => {
@@ -171,4 +173,4 @@ const setupServer = (isClusterRequired) => {
   }
 };
 
-setupServer(false);
+setupServer(true);

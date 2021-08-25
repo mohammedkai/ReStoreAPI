@@ -149,7 +149,7 @@ cartExpress.post('/getCartItems', async (req, res, next) => {
       res.status(200).send({ cartProducts: cartProductList, isSuccess : true });
     }
     else {
-      res.status(500).send({ cartProducts: cartProductList, isSuccess : false });
+      res.status(200).send({ cartProducts: cartProductList, isSuccess : true });
     }
 
 
