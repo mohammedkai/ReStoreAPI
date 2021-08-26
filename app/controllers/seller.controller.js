@@ -45,5 +45,38 @@ sellerExpress.post('/registerSeller', async (req, res, next) => {
         res.status(500).send({ errorCode: 500, errorMessage: err });
     }
 });
+
+
+sellerExpress.get('/getsellerlistings', async (req, res, next) => {
+    const sql = 'CALL sp_get_all_products_by_seller_id(:seller_id, :ref_cur_0)';
+    const sellerproduct_data_binds = {
+        seller_id: req.params.sellerId,
+      ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+    };
+    // const data = { cartid: 2, productid: 17, qty: 1 };
+    const options = { autoCommit: true };
+    // const binds = Object.assign({}, cart_data, data);
+    try {
+      db.doConnect(async (err, connection) => {
+        try {
+          const result = await connection.execute(sql, sellerproduct_data_binds, options);
+          res.status(200).send({ sellerlistings: result, isSuccess: true });
+        } catch (err) {
+          res.status(500).send({ errorCode: 500, errorMessage: err });
+        } finally {
+          if (connection) {
+            try {
+              await connection.close();
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        }
+      });
+    } catch (err) {
+      res.status(500).send({ errorCode: 500, errorMessage: err });
+    }
+  });
+
  
 module.exports = sellerExpress;
