@@ -173,4 +173,4 @@ const setupServer = (isClusterRequired) => {
   }
 };
 
-setupServer(false);
+setupServer(true);
