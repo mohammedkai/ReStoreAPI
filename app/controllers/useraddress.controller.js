@@ -65,9 +65,9 @@ addressExpress.post('/getUserAddress', async (req, res, next) => {
         line2: `${element.LINE2},\n${element.CITY_ID},${element.STATE_ID}\n` + 'India' + `\n${element.PINCODE}`,
         primary_mobileno: element.PRIMARY_MOBILENO,
         secondary_mobileno: element.SECONDARY_MOBILENO,
-        city_id : element.CITY_ID,
-        state_id : element.STATE_ID,
-        pincode : element.PINCODE
+        city_id: element.CITY_ID,
+        state_id: element.STATE_ID,
+        pincode: element.PINCODE
       });
     });
     res.status(200).send(newAddressList);
@@ -97,6 +97,29 @@ addressExpress.post('/getLocation', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
 });
+
+
+addressExpress.get('/getUserAddressByID/:addressId', async (req, res, next) => {
+  await dbSvc.initialize();
+  const query = 'CALL sp_get_address_by_id(:addressid, :ref_cur_0)';
+  const address_data_binds = {
+    addressid: req.params.addressId,
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  try {
+    const addressData = await dbSvc.simpleExecute(query, address_data_binds, 1, 'default');
+    if (addressData.ref_cur_0[0].length > 0) {
+      addressData.ref_cur_0[0][0]['isSuccess'] = true;
+      res.status(200).send(addressData.ref_cur_0[0][0]);
+    }
+    else {
+      res.status(200).send({isSuccess : false});
+    }
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
 
 
 module.exports = addressExpress;

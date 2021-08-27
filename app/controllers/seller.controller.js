@@ -89,7 +89,7 @@ sellerExpress.get('/getSellerOrders/:sellerId', async (req, res, next) => {
             let orders = [];
             uniqueOrderIds.forEach(orderid => {
                 const productsFound = sellerOrdersResult.ref_cur_0[0].filter(element => element.OrderId == orderid);
-                orders.push({ ordersid: orderid, orderdate: productsFound[0].OrderDate, OrderTotal: productsFound[0].OrderTotal, products: productsFound });
+                orders.push({ ordersid: orderid, orderdate: productsFound[0].OrderDate,userAddressID :productsFound[0].UserAddressID , OrderTotal: productsFound[0].OrderTotal, products: productsFound });
             });
             res.status(200).send({ sellerOrdersList: orders, isSuccess: true });
         }

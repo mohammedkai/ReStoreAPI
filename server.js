@@ -132,7 +132,7 @@ const setUpExpress = () => {
   app.use('/category', category);
   app.use('/products', products);
   app.use('/carts', cart);
-  app.use('/addresses',authJwt, useraddress);
+  app.use('/addresses', useraddress);
   app.use('/orders', authJwt, userorder);
   app.use('/payments', payments);
   app.use('/sellers', sellercontroller);
@@ -173,4 +173,4 @@ const setupServer = (isClusterRequired) => {
   }
 };
 
-setupServer(true);
+setupServer(false);
