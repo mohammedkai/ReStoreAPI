@@ -7,8 +7,9 @@ const dbConfig = require('../config/db.config_cloud');
 const dbSvc = require('../config/db_svc.js');
 
 addressExpress.post('/addnewaddress', async (req, res, next) => {
-  const sql = 'CALL sp_add_new_address(:userid, :typeid,:cityid,:mypincode,:stateid,:primarymobileno,:secondarymobileno,:line_1,:line_2,:fullname)';
+  const sql = 'CALL sp_add_new_address(:addressid, :userid, :typeid,:cityid,:mypincode,:stateid,:primarymobileno,:secondarymobileno,:line_1,:line_2,:fullname)';
   const cart_data_binds = {
+    addressid : req.body.address_id,
     userid: req.body.User_ID,
     typeid: req.body.Address_Type,
     cityid: req.body.city_id,
@@ -53,24 +54,9 @@ addressExpress.post('/getUserAddress', async (req, res, next) => {
     ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
   };
   try {
-    const allProducts = await dbSvc.simpleExecute(query, address_data_binds, 1, 'default');
-    const newAddressList = [];
-    allProducts.ref_cur_0[0].forEach((element) => {
-      newAddressList.push({
-        address_id: element.ID,
-        Recipient_Name: element.RECIPIENT_NAME,
-        Address_Type: element.ADDRESS_TYPE,
-        User_ID: element.USER_ID,
-        line1: element.LINE1,
-        line2: `${element.LINE2},\n${element.CITY_ID},${element.STATE_ID}\n` + 'India' + `\n${element.PINCODE}`,
-        primary_mobileno: element.PRIMARY_MOBILENO,
-        secondary_mobileno: element.SECONDARY_MOBILENO,
-        city_id: element.CITY_ID,
-        state_id: element.STATE_ID,
-        pincode: element.PINCODE
-      });
-    });
-    res.status(200).send(newAddressList);
+    const allAddressList = await dbSvc.simpleExecute(query, address_data_binds, 1, 'default');
+   
+    res.status(200).send(allAddressList.ref_cur_0[0]);
   } catch (error) {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
@@ -120,6 +106,19 @@ addressExpress.get('/getUserAddressByID/:addressId', async (req, res, next) => {
   }
 });
 
+addressExpress.get('/deleteByAddressId/:addressId', async (req, res, next) => {
+  await dbSvc.initialize();
+  const query = 'CALL sp_address_disabled_by_id(:addressid)';
+  const address_data_binds = {
+    addressid: req.params.addressId
+  };
+  try {
+    const addressupdatestatus = await dbSvc.simpleExecute(query, address_data_binds, 0, 'default');
+    res.status(200).send({isSuccess : true});
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
 
 
 module.exports = addressExpress;

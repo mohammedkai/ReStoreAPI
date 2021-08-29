@@ -27,9 +27,8 @@ const authJwt = require('./app/middleware/authJwt');
 const { auth } = require('firebase-admin');
 const https = require('https');
 const fs = require('fs');
-
-
-
+const path = require("path");
+const isLocal = false;
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', (uncaughtExc) => {
   logger.error('Uncaught Excpetion', { message: uncaughtExc.message, stack: uncaughtExc.stack });
@@ -133,11 +132,11 @@ const setUpExpress = () => {
   app.use('/products', products);
   app.use('/carts', cart);
   app.use('/addresses', useraddress);
-  app.use('/orders', authJwt, userorder);
+  app.use('/orders', userorder);
   app.use('/payments', payments);
   app.use('/sellers', sellercontroller);
-  
-  
+
+
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
     res.status(500).send({
@@ -147,12 +146,26 @@ const setUpExpress = () => {
     next();
   });
 
-  //const server = https.createServer(options, app);
-  // set port, listen for requests
-    const PORT = process.env.PORT || 8081;
+  const PORT = process.env.PORT || 8081;
+  if (isLocal) {
+    const sslServer = https.createServer({
+      key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem'))
+    }, app);
+    sslServer.listen(PORT, () => {
+      console.log("Secure App Runing on " + PORT)
+    });
+  }
+  else {
+    //const server = https.createServer(options, app);
+    // set port, listen for requests
     app.listen(PORT, () => {
-    console.log(chalk.yellow(`Started server on => https://${ip.address()}:${PORT} for Process Id ${process.pid}`));
-  });
+      console.log(chalk.yellow(`Started server on => https://${ip.address()}:${PORT} for Process Id ${process.pid}`));
+    });
+
+  }
+
+
 
 };
 
