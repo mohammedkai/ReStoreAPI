@@ -28,7 +28,7 @@ const { auth } = require('firebase-admin');
 const https = require('https');
 const fs = require('fs');
 const path = require("path");
-const isLocal = true;
+const isLocal = false;
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', (uncaughtExc) => {
   logger.error('Uncaught Excpetion', { message: uncaughtExc.message, stack: uncaughtExc.stack });
