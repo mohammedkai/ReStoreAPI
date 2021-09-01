@@ -62,7 +62,7 @@ function getAllCategories(callback) {
 
 function getCategSubCategory(callback) {
   // eslint-disable-next-line max-len
-  const sql = 'SELECT c.id as "categoryId", c.name as "category", sc.id as "subCategoryId", sc.name as "subCategory" FROM category c LEFT JOIN sub_category sc ON c.id = sc.category_id and sc.isactive = 1 and c.isactive = 1 ORDER BY c.id ASC,sc.id ASC';
+  const sql = 'SELECT c.id as "categoryId",c.name as "category", sc.id as "subCategoryId", sc.name as "subCategory" FROM category c LEFT JOIN sub_category sc ON c.id = sc.category_id and sc.isactive = 1 and c.isactive = 1 ORDER BY c.id ASC,sc.id ASC';
   db.doConnect((err, connection) => {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
     if (err) {

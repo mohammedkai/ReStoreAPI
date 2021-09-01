@@ -98,7 +98,7 @@ productExpress.get('/getProductDetailsById/:prodId', async (req, res, next) => {
       console.log(`${err.stack}`);
       res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
     }
-    const query = 'BEGIN sp_getproduct_details(:product_id_number, :ref_cur_0, :ref_cur_1); END;';
+    const query = 'BEGIN sp_getproduct_details(:product_id_number,:ref_cur_0, :ref_cur_1); END;';
     const binds = {
       product_id_number: productId,
       ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
@@ -285,7 +285,7 @@ productExpress.post('/addProductSpecs', async (req, res, next) => {
         };
         const result = await connection.execute(addspecsquery, productbindings, options);
       });
-      res.status(200).send({ message: 'Product spec submitted', isSuccess: true});
+      res.status(200).send({ message: 'Product spec submitted', isSuccess: true });
     });
   } catch (error) {
     res.status(500).send({ errorCode: 500, errorMessage: err, isSuccess: false });
