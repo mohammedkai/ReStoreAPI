@@ -1,11 +1,11 @@
 // Include all external dependencies
 const oracledb = require('oracledb');
-
 // Intialize variables
 const numRows = 100;
 let respArr = [];
 let connectionObject;
 async function initialize(envName) {
+ 
   await oracledb.createPool({
     user: process.env.DATABASEUSERNAME,
     password: process.env.DATABASEPASSWORD,
@@ -43,6 +43,8 @@ async function simpleExecute(statement, binds = [], numberOutCur, poolAlias, opt
     await initialize();
     opts.outFormat = oracledb.OBJECT;
     opts.autoCommit = true;
+  
+    
     connectionObject = await oracledb.getConnection(poolAlias);
     const finalResult = {};
     const result = await connectionObject.execute(statement, binds, opts);
