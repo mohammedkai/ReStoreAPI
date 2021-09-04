@@ -29,6 +29,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require("path");
 const isLocal = false;
+
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', (uncaughtExc) => {
   logger.error('Uncaught Excpetion', { message: uncaughtExc.message, stack: uncaughtExc.stack });
@@ -146,21 +147,20 @@ const setUpExpress = () => {
     next();
   });
 
-  const PORT = process.env.PORT || 8081;
   if (isLocal) {
     const sslServer = https.createServer({
       key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
       cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem'))
     }, app);
-    sslServer.listen(PORT, () => {
-      console.log("Secure App Runing on " + PORT)
+    sslServer.listen(process.env.PORT, () => {
+      console.log("Secure App Runing on " + process.env.PORT)
     });
   }
   else {
     //const server = https.createServer(options, app);
     // set port, listen for requests
-    app.listen(PORT, () => {
-      console.log(chalk.yellow(`Started server on => https://${ip.address()}:${PORT} for Process Id ${process.pid}`));
+    app.listen(process.env.PORT, () => {
+      console.log(chalk.yellow(`Started server on => https://${ip.address()}:${process.env.PORT} for Process Id ${process.pid}`));
     });
 
   }
@@ -186,4 +186,5 @@ const setupServer = (isClusterRequired) => {
   }
 };
 
-setupServer(false);
+setupServer(true);
+

@@ -8,6 +8,7 @@ const { BlobServiceClient, StorageSharedKeyCredential } = require("@azure/storag
 const productExpress = express();
 productExpress.use(bodyparser.json());
 
+
 async function initAzureBlob() {
   const account = process.env.ACCOUNT_NAME || "";
   const accountKey = process.env.ACCOUNT_KEY || "";
