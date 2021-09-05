@@ -17,5 +17,6 @@ app.post('/logout', user.logout);
 app.post('/changePassword', user.updatePassword);
 app.get('/details', user.getUserDetails);
 app.get('/remove', user.remove);
+app.get('/verify', user.verify);
 
 module.exports = app;
