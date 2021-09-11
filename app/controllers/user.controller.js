@@ -62,10 +62,12 @@ exports.create = (req, res, next) => {
     lastName: req.body.lastName,
     login: req.body.login,
     isActive: 1,
-    role: req.body.role,
+    role: 1,
     password: req.body.password,
     authId: null,
     middleName: req.body.middleName,
+    uuid : req.body.uuid,
+    phonenumber:req.body.phonenumber
   });
   // Save user in the database
   User.create(user, (err, data) => {

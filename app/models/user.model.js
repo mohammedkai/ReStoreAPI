@@ -22,6 +22,7 @@ const User = function (user) {
   this.newPassword = user.newPassword;
   this.fcmToken = user.fcmToken;
   this.phonenumber = user.phonenumber;
+  this.uuid = user.uuid;
 };
 
 function insertUser(user, callback) {
@@ -30,11 +31,11 @@ function insertUser(user, callback) {
   const reg_user_binds = {
     firstname: user.firstName,
     lastname: user.lastName,
-    phone_name: "7039508",
+    phone_name: user.phonenumber,
     user_password: user.password,
     email_id: user.login,
     userrole: user.role,
-    udid: uuid.v4(),
+    udid: user.uuid,
     res: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
   };
   const options = {};
