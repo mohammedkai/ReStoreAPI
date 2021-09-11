@@ -22,10 +22,10 @@ exports.swaggerSetup = {
     },
     servers: [
       {
-        url: 'https://140.238.254.19:8080/',
+        url: 'http://140.238.254.19:8080/',
       },
       {
-        url: 'https://localhost:8080/',
+        url: 'http://localhost:8080/',
       },
     ],
   },
