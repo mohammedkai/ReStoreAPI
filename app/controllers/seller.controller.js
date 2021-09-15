@@ -502,11 +502,13 @@ sellerExpress.get('/getCourierCompanyMaster', async (req, res, next) => {
   const options = { autoCommit: true };
   try {
     const courierMasterResult = await dbSvc.simpleExecute(sql, couriercompanybinds, 1, 'default');
-
     if (courierMasterResult.ref_cur_0[0].length > 0) {
       res
         .status(200)
-        .send({ courierMasterList: courierMasterResult.ref_cur_0[0], isSuccess: true });
+        .send({
+          courierMasterList: courierMasterResult.ref_cur_0[0],
+          isSuccess: true,
+        });
     } else {
       res.status(200).send({ courierMasterList: [], isSuccess: false });
     }
@@ -514,6 +516,30 @@ sellerExpress.get('/getCourierCompanyMaster', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
 });
+
+sellerExpress.get('/getCancelReasonMaster', async (req, res, next) => {
+  const sqlreason = 'CALL sp_get_cancel_reason_master(:ref_cur_0)';
+  const cancelreasonbinds = {
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  const options = { autoCommit: true };
+  try {
+    const reasonMasterResult = await dbSvc.simpleExecute(sqlreason, cancelreasonbinds, 1, 'default');
+    if (reasonMasterResult.ref_cur_0[0].length > 0) {
+      res
+        .status(200)
+        .send({
+          reasonMasterResult: reasonMasterResult.ref_cur_0[0],
+          isSuccess: true,
+        });
+    } else {
+      res.status(200).send({ reasonMasterResult: [], isSuccess: false });
+    }
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
 
 sellerExpress.post('/addTrackingDetails', async (req, res, next) => {
   const query =
@@ -563,6 +589,88 @@ sellerExpress.post('/addTrackingDetails', async (req, res, next) => {
     });
   } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+sellerExpress.post('/getProductOrderTrackingDetails', async (req, res, next) => {
+  const sql = 'CALL sp_get_product_tracking_detail(:orderitem_id,:ref_cur_0)';
+  const courierdetails = {
+    orderitem_id: req.body.orderItemId,
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  const options = { autoCommit: true };
+  try {
+    const courierdetailresult = await dbSvc.simpleExecute(sql, courierdetails, 1, 'default');
+    if (courierdetailresult.ref_cur_0[0].length > 0) {
+      courierdetailresult.ref_cur_0[0][0]['isSuccess'] = true;
+      res.status(200).send(courierdetailresult.ref_cur_0[0][0]);
+    } else {
+      res.status(200).send({ isSuccess: false });
+    }
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+sellerExpress.post('/cancelOrderedItem', async (req, res, next) => {
+  const query =
+    'CALL sp_cancel_ordered_product(:orderitem_id,:cancellationreason_id,:cancellation_reason_text,:remark,:cancelled_by,:cancelled_by_user_id,:cancellation_id)';
+  const cancellationDetailsBinds = {
+    orderitem_id: req.body.orderItemId,
+    cancellationreason_id: req.body.cancellationReasonId,
+    cancellation_reason_text: req.body.cancellationReasonText,
+    remark: req.body.remark,
+    cancelled_by: req.body.cancelledBy,
+    cancelled_by_user_id: req.body.cancelledByUserId,
+    cancellation_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, cancellationDetailsBinds, options);
+        if (result !== undefined && result.outBinds !== undefined) {
+          res
+            .status(200)
+            .send({ cancellationId: result.outBinds.cancellation_id, isSuccess: true });
+        } else {
+          res.status(201).send({ cancellationId: null, isSuccess: false });
+        }
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+
+sellerExpress.post('/getCancelDetails', async (req, res, next) => {
+  const sql = 'CALL sp_get_cancelproduct_details(:orderitem_id,:ref_cur_0)';
+  const canceDetailsBind = {
+    orderitem_id: req.body.orderItemId,
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  const options = { autoCommit: true };
+  try {
+    const canceldetailresult = await dbSvc.simpleExecute(sql, canceDetailsBind, 1, 'default');
+    if (canceldetailresult.ref_cur_0[0].length > 0) {
+      canceldetailresult.ref_cur_0[0][0]['isSuccess'] = true;
+      res.status(200).send(canceldetailresult.ref_cur_0[0][0]);
+    } else {
+      res.status(200).send({ isSuccess: false });
+    }
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
 });
 
