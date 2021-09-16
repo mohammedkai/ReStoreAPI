@@ -503,12 +503,10 @@ sellerExpress.get('/getCourierCompanyMaster', async (req, res, next) => {
   try {
     const courierMasterResult = await dbSvc.simpleExecute(sql, couriercompanybinds, 1, 'default');
     if (courierMasterResult.ref_cur_0[0].length > 0) {
-      res
-        .status(200)
-        .send({
-          courierMasterList: courierMasterResult.ref_cur_0[0],
-          isSuccess: true,
-        });
+      res.status(200).send({
+        courierMasterList: courierMasterResult.ref_cur_0[0],
+        isSuccess: true,
+      });
     } else {
       res.status(200).send({ courierMasterList: [], isSuccess: false });
     }
@@ -524,14 +522,17 @@ sellerExpress.get('/getCancelReasonMaster', async (req, res, next) => {
   };
   const options = { autoCommit: true };
   try {
-    const reasonMasterResult = await dbSvc.simpleExecute(sqlreason, cancelreasonbinds, 1, 'default');
+    const reasonMasterResult = await dbSvc.simpleExecute(
+      sqlreason,
+      cancelreasonbinds,
+      1,
+      'default'
+    );
     if (reasonMasterResult.ref_cur_0[0].length > 0) {
-      res
-        .status(200)
-        .send({
-          reasonMasterResult: reasonMasterResult.ref_cur_0[0],
-          isSuccess: true,
-        });
+      res.status(200).send({
+        reasonMasterResult: reasonMasterResult.ref_cur_0[0],
+        isSuccess: true,
+      });
     } else {
       res.status(200).send({ reasonMasterResult: [], isSuccess: false });
     }
@@ -539,7 +540,6 @@ sellerExpress.get('/getCancelReasonMaster', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
 });
-
 
 sellerExpress.post('/addTrackingDetails', async (req, res, next) => {
   const query =
@@ -653,7 +653,6 @@ sellerExpress.post('/cancelOrderedItem', async (req, res, next) => {
   }
 });
 
-
 sellerExpress.post('/getCancelDetails', async (req, res, next) => {
   const sql = 'CALL sp_get_cancelproduct_details(:orderitem_id,:ref_cur_0)';
   const canceDetailsBind = {
@@ -671,6 +670,47 @@ sellerExpress.post('/getCancelDetails', async (req, res, next) => {
     }
   } catch (error) {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+sellerExpress.post('/submitSellerDocuments', async (req, res, next) => {
+  const sql =
+    'CALL sp_add_seller_documents(:seller_id,:gstnumberinput,:identityprooftype_id,:addressprooftype_id,:idproofdocument_number,:idproofdocumentimage_key,:addressproofdocument_number,:addressproofdocumentimage_key,:isexecuted)';
+  const sellerDocsBinds = {
+    seller_id: req.body.sellerId,
+    gstnumberinput: req.body.gstNumber,
+    identityprooftype_id: req.body.identityDocumentTypeId,
+    addressprooftype_id: req.body.addressDocumentTypeId,
+    idproofdocument_number: req.body.idProofDocumentNumber,
+    idproofdocumentimage_key: req.body.idProofDocumentImageString,
+    addressproofdocument_number: req.body.addressDocumentNumber,
+    addressproofdocumentimage_key: req.body.addressDocumentImageString,
+    isexecuted: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(sql, sellerDocsBinds, options);
+        if (result.outBinds.isexecuted == 1 || result.outBinds.isexecuted == 2) {
+          res.status(200).send({ isSuccess: true });
+        } else if (result.outBinds.isexecuted == 0) {
+          res.status(201).send({ isSuccess: false });
+        }
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
 
