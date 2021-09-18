@@ -98,7 +98,7 @@ async function verifyToken(token, resObject) {
                 isSuccess: true,
                 UserDataResponse: decodedToken,
                 accessToken: accessToken,
-                refreshToken : refreshToken
+                refreshToken: refreshToken,
               });
             } else {
               resObject.status(200).send({
@@ -128,5 +128,44 @@ async function verifyToken(token, resObject) {
       // Handle error
     });
 }
+
+userExpress.post('/updateFCMToken', async (req, res, next) => {
+  const sql = 'CALL sp_update_user_fcm_token(:users_id,:sellers_id,:fcmtokenstring,:response)';
+  const userfcmBinds = {
+    users_id: req.body.userId,
+    sellers_id: req.body.sellerId,
+    fcmtokenstring: req.body.fcmTokenString,
+    response: { dir: oracledb.BIND_OUT, type: oracledb.CHAR },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(sql, userfcmBinds, options);
+        if (
+          result !== undefined &&
+          result.outBinds !== undefined &&
+          result.outBinds.response == 1
+        ) {
+          res.status(200).send({ response: result.outBinds.response, isSuccess: true });
+        } else {
+          res.status(201).send({ response: null, isSuccess: false });
+        }
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
 
 module.exports = userExpress;

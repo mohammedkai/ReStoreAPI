@@ -17,7 +17,7 @@ oracledb.createPool(
     poolMax: 44,
     poolMin: 2,
     poolIncrement: 5,
-    poolTimeout: 4,
+    poolTimeout: 20,
   },
   (err, pool) => {
     if (err) {
