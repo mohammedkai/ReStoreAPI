@@ -168,4 +168,51 @@ userExpress.post('/updateFCMToken', async (req, res, next) => {
   }
 });
 
+userExpress.post('/addToWishList', async (req, res, next) => {
+  const query =
+    'CALL sp_add_to_wishlist(:user_id,:product_id,:operation_id,:wishlist_id,:response)';
+  const wishlistBinds = {
+    user_id: req.body.userId,
+    product_id: req.body.productId,
+    operation_id: req.body.operationId,
+    wishlist_id: req.body.wishlistId,
+    response: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, wishlistBinds, options);
+        if (
+          result !== undefined &&
+          result.outBinds !== undefined &&
+          result.outBinds.response == 1
+        ) {
+          res.status(200).send({ response: result.outBinds.response, isSuccess: true });
+        } else if (
+          result !== undefined &&
+          result.outBinds !== undefined &&
+          result.outBinds.response == 3
+        ) {
+          res.status(200).send({ response: result.outBinds.response, isSuccess: true });
+        } else {
+          res.status(201).send({ response: null, isSuccess: false });
+        }
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
 module.exports = userExpress;

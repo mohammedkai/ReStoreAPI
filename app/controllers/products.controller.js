@@ -91,14 +91,6 @@ productExpress.get('/getAllProduct', async (req, res, next) => {
 productExpress.get('/getProductDetailsById/:prodId', async (req, res, next) => {
   const productId = req.params.prodId;
   if (productId !== null && productId !== 0) {
-    try {
-      await dbSvc.initialize();
-      console.log('DB initialized.');
-    } catch (err) {
-      console.log(`${err.message}`);
-      console.log(`${err.stack}`);
-      res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
-    }
     const query = 'BEGIN sp_getproduct_details(:product_id_number,:ref_cur_0, :ref_cur_1); END;';
     const binds = {
       product_id_number: productId,
@@ -293,5 +285,32 @@ productExpress.post('/addProductSpecs', async (req, res, next) => {
   }
 });
 
+productExpress.get('/getMyWishList/:userId', async (req, res, next) => {
+  const usersId = req.params.userId;
+  const query = 'BEGIN sp_get_wishlist_list(:user_id, :ref_cur_0); END;';
+  const binds = {
+    user_id: usersId,
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
+  try {
+    const productList = await dbSvc.simpleExecute(query, binds, 1, 'default');
+    let productimage = await initAzureBlob();
+    let productImageUrl = [];
+    let productsList = [];
+    productList.ref_cur_0[0].forEach((element) => {
+      productimage.forEach(imagedetail => {
+        if (imagedetail.metadata.ProductKey == element.IMAGE_ID) {
+          productImageUrl.push('https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + imagedetail.name);
+        }
+        element['productImageUrl'] = productImageUrl;
+      });
+      productsList.push(element);
+      productImageUrl = [];
+    });
+    res.status(200).send(productsList);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
 
 module.exports = productExpress;
