@@ -215,4 +215,53 @@ userExpress.post('/addToWishList', async (req, res, next) => {
   }
 });
 
+userExpress.post('/getUsersMetadata', async (req, res, next) => {
+  const query = 'CALL sp_get_users_metadata(:user_id, :ref_cur_0)';
+  const metadata_binds = {
+    user_id: req.body.User_Id,
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  try {
+    const usersmetadata = await dbSvc.simpleExecute(query, metadata_binds, 1, 'default');
+    if (usersmetadata.ref_cur_0[0].length > 0) {
+      usersmetadata.ref_cur_0[0][0]['isSuccess'] = true;
+      res.status(200).send(usersmetadata.ref_cur_0[0][0]);
+    } else {
+      res.status(200).send({ isSuccess: false });
+    }
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+userExpress.post('/updateUsersMetadata', async (req, res, next) => {
+  const query = 'CALL sp_update_user_metadata(:user_id,:operation_id,:selected_address_id)';
+  const update_metadata_binds = {
+    user_id: req.body.User_Id,
+    operation_id: req.body.operationId,
+    selected_address_id: req.body.SelectedAddressOrderId
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, update_metadata_binds, options);
+        res.status(200).send({ isSuccess: true });
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
 module.exports = userExpress;

@@ -18,7 +18,7 @@ const userorder = require('./app/controllers/orders.controller');
 const payments = require('./app/controllers/payment.controller');
 const userscontroller = require('./app/controllers/users.controller');
 const sellercontroller = require('./app/controllers/seller.controller');
-const ip = require("ip");
+const ip = require('ip');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const { swaggerSetup } = require('./app/config/swaggerSetup');
@@ -27,11 +27,12 @@ const authJwt = require('./app/middleware/authJwt');
 const { auth } = require('firebase-admin');
 const https = require('https');
 const fs = require('fs');
-const path = require("path");
+const path = require('path');
 const isLocal = false;
+const cron = require('node-cron');
 
 // catch unexpected exception becuase of which server get crashed
-process.on('uncaughtException', (uncaughtExc) => {
+process.on('uncaughtException', uncaughtExc => {
   logger.error('Uncaught Excpetion', { message: uncaughtExc.message, stack: uncaughtExc.stack });
 });
 
@@ -59,23 +60,27 @@ const setupWorkerProcesses = () => {
     workers.push(cluster.fork());
 
     // to receive messages from worker process
-    workers[i].on('message', (message) => {
+    workers[i].on('message', message => {
       console.log(message);
     });
   }
 
   // process is clustered on a core and process id is assigned
-  cluster.on('online', (worker) => {
+  cluster.on('online', worker => {
     console.log(chalk.yellow('Worker ' + worker.process.pid + ' is listening'));
   });
 
   // if any of the worker process dies then start a new one by simply forking another one
   cluster.on('exit', (worker, code, signal) => {
-    console.log(chalk.red('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal));
+    console.log(
+      chalk.red(
+        'Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal
+      )
+    );
     console.log(chalk.yellow('Starting a new worker'));
     workers.push(cluster.fork());
     // to receive messages from worker process
-    workers[workers.length - 1].on('message', (message) => {
+    workers[workers.length - 1].on('message', message => {
       console.log(message);
     });
   });
@@ -99,6 +104,18 @@ const setUpExpress = () => {
   // simple route
   app.get('/', (req, res) => {
     res.json({ message: 'Welcome to mohammed application.' });
+  });
+
+  cron.schedule('*/15 * * * *', () => {
+    console.log('running a task in 5 minutes');
+    app
+      .get('https://restoreapiv22.azurewebsites.net/')
+      .then(response => {
+        console.log(response.data);
+      })
+      .catch(error => {
+        console.log(error);
+      });
   });
 
   app.all('*', (req, res, next) => {
@@ -137,7 +154,6 @@ const setUpExpress = () => {
   app.use('/payments', payments);
   app.use('/sellers', sellercontroller);
 
-
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
     res.status(500).send({
@@ -148,25 +164,29 @@ const setUpExpress = () => {
   });
 
   if (isLocal) {
-    const sslServer = https.createServer({
-      key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
-      cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem'))
-    }, app);
+    const sslServer = https.createServer(
+      {
+        key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem')),
+      },
+      app
+    );
     sslServer.listen(process.env.PORT, () => {
-      console.log("Secure App Runing on " + process.env.PORT)
+      console.log('Secure App Runing on ' + process.env.PORT);
     });
-  }
-  else {
+  } else {
     //const server = https.createServer(options, app);
     // set port, listen for requests
     app.listen(process.env.PORT, () => {
-      console.log(chalk.yellow(`Started server on => https://${ip.address()}:${process.env.PORT} for Process Id ${process.pid}`));
+      console.log(
+        chalk.yellow(
+          `Started server on => https://${ip.address()}:${process.env.PORT} for Process Id ${
+            process.pid
+          }`
+        )
+      );
     });
-
   }
-
-
-
 };
 
 /**
@@ -175,8 +195,7 @@ const setUpExpress = () => {
  * @constructor
  */
 
-const setupServer = (isClusterRequired) => {
-
+const setupServer = isClusterRequired => {
   // if it is a master process then call setting up worker process
   if (isClusterRequired && cluster.isMaster) {
     setupWorkerProcesses();
@@ -185,5 +204,4 @@ const setupServer = (isClusterRequired) => {
     setUpExpress();
   }
 };
-setupServer(true);
-
+setupServer(true)

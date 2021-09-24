@@ -7,7 +7,7 @@ const dbConfig = require('../config/db.config_cloud');
 const dbSvc = require('../config/db_svc.js');
 
 addressExpress.post('/addnewaddress', async (req, res, next) => {
-  const sql = 'CALL sp_add_new_address(:addressid, :userid, :typeid,:cityid,:mypincode,:stateid,:primarymobileno,:secondarymobileno,:line_1,:line_2,:fullname)';
+  const sql = 'CALL sp_add_new_address(:addressid, :userid, :typeid,:cityid,:mypincode,:stateid,:primarymobileno,:secondarymobileno,:line_1,:line_2,:fullname,:isdefault)';
   const cart_data_binds = {
     addressid : req.body.address_id,
     userid: req.body.User_ID,
@@ -20,6 +20,7 @@ addressExpress.post('/addnewaddress', async (req, res, next) => {
     line_1: req.body.line1,
     line_2: req.body.line2,
     fullname: req.body.Recipient_Name,
+    isdefault:req.body.IsDefault,
   };
   // const data = { cartid: 2, productid: 17, qty: 1 };
   const options = { autoCommit: true };
