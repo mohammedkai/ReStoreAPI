@@ -105,7 +105,6 @@ app.post('/notification/multiuser', (req, res, next) => {
     .catch(error => {
       console.log(error);
       res.status(201).send(`Could not send Notification`);
-      next(error);
     });
 });
 
@@ -157,7 +156,7 @@ app.post('/notification/notifytopics', (req, res, next) => {
     })
     .catch(error => {
       console.log('Error sending message:', error);
-      next(error);
+      res.status(201).send(`Error sending message${error}`);
     });
 });
 
@@ -174,7 +173,7 @@ function fireNotification(messagee, res) {
     })
     .catch(error => {
       console.log(error);
-      next(error);
+      res.status(201).send(`Notification was not sent successfully${error}`);
     });
 }
 module.exports.fireNotification = fireNotification;

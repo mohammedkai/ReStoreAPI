@@ -28,9 +28,8 @@ const { auth } = require('firebase-admin');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const isLocal = false;
 const cron = require('node-cron');
-
+const isLocal = true;
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', uncaughtExc => {
   logger.error('Uncaught Excpetion', { message: uncaughtExc.message, stack: uncaughtExc.stack });
@@ -104,18 +103,6 @@ const setUpExpress = () => {
   // simple route
   app.get('/', (req, res) => {
     res.json({ message: 'Welcome to mohammed application.' });
-  });
-
-  cron.schedule('*/15 * * * *', () => {
-    console.log('running a task in 5 minutes');
-    app
-      .get('https://restoreapiv22.azurewebsites.net/')
-      .then(response => {
-        console.log(response.data);
-      })
-      .catch(error => {
-        console.log(error);
-      });
   });
 
   app.all('*', (req, res, next) => {
@@ -204,4 +191,4 @@ const setupServer = isClusterRequired => {
     setUpExpress();
   }
 };
-setupServer(true)
+setupServer(false);
