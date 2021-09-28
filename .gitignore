@@ -116,3 +116,13 @@ dist
 /.vs/slnx.sqlite
 .vs/ReStoreAPI/v16/.suo
 .vs/VSWorkspaceState.json
+.env
+mywallet/cwallet.sso
+mywallet/ewallet.p12
+mywallet/keystore.jks
+mywallet/ojdbc.properties
+mywallet/README
+mywallet/sqlnet.ora
+mywallet/tnsnames.ora
+mywallet/truststore.jks
+.env

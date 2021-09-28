@@ -122,4 +122,38 @@ orderExpress.post('/getAllOrders', async (req, res, next) => {
   }
 });
 
+
+orderExpress.post('/getOrderSummary', async (req, res, next) => {
+  const query =
+    'CALL sp_get_order_summary_byuser(:user_id,:jsonstring)';
+  const order_summary_binds = {
+    user_id: req.body.userId,
+    jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, order_summary_binds, options);
+        var parseObject = JSON.parse(result.outBinds.jsonstring);
+        parseObject["isSuccess"] = true;
+        res.status(200).send(parseObject);
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+
 module.exports = orderExpress;
