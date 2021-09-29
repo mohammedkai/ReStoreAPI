@@ -1,4 +1,9 @@
 const User = require('../models/user.model.js');
+const oracledb = require('oracledb');
+const db = require('../dbconnections/oracledb.js');
+const jwt = require('jsonwebtoken');
+const jwtKey = process.env.JWT_SECRET;
+
 
 /**
  * @swagger
@@ -342,12 +347,7 @@ exports.updatePassword = (req, res) => {
 exports.getUserDetails = (req, res) => {
   // Validate request
   const { uuid } = req.query;
-  if (!uuid) {
-    return res.status(400).send({
-      message: 'UUID can not be empty! It must be included as query parameter',
-      isSuccess: false,
-    });
-  }
+     
 
   User.getUserDetails(uuid, (err, data) => {
     if (err) {
@@ -402,3 +402,110 @@ exports.remove = function (req, res, next) {
     } return res.status(200).send(data);
   });
 };
+
+
+
+
+/**
+ * @swagger
+ * path:
+ *  /user/verify:
+ *    get:
+ *      summary: Get User's details
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Users]
+ *      parameters:
+ *        - in: query
+ *          name: login
+ *          required: true
+ *          description: The login of the user to verify.
+ *          type: string
+ *      responses:
+ *       200:
+ *         description: User deactivated Succesfully.
+ *       404:
+ *         description: Username does not exist.
+ *       500:
+ *         description: Internal Server Error.
+ */
+
+
+ exports.verify = (req, res) => {
+  // Validate request
+  const { login } = req.query;
+  const { phonenumber } = req.query;
+  if (!login && !phonenumber ) {
+    return res.status(400).send({
+      message: 'Login or phonenumber cannot be empty! It must be included as query parameter',
+      isSuccess: false,
+    });
+  }
+
+  // Authenticates a User
+
+  const user = new User({
+    login: req.query.login,
+    phonenumber: req.query.phonenumber,
+  });
+
+  const sql = 'CALL sp_check_login_credentials(:name, :value,:isPresent)';
+  const user_data_binds = {
+      name: req.query.login!==undefined?'login':'phonenumber',
+      value: req.query.login!==undefined?req.query.login:req.query.phonenumber,
+      isPresent: { dir: oracledb.BIND_OUT, type: oracledb.VARCHAR },
+  };
+  // const data = { cartid: 2, productid: 17, qty: 1 };
+  const options = {};
+  // const binds = Object.assign({}, cart_data, data);
+  try {
+      db.doConnect(async (err, connection) => {
+          try {
+              const result = await connection.execute(sql, user_data_binds, options);
+              if (result != null) {
+                if(result.outBinds.isPresent==='true'){
+                   const accessToken = jwt.sign({ username: req.query.login!==undefined?req.query.login:req.query.phonenumber }, jwtKey, {
+                    algorithm: 'HS256',
+                    expiresIn: '15m',
+                  });
+                  res.status(200).send({ accessToken ,isSuccess: true, });
+                }else{
+                  res.status(200).send({ message:'No user found', isSuccess: false, });
+                }
+              }
+              else {
+                  res.status(200).send({ message: 'Unable to verify user', isSuccess: false });
+              }
+          } catch (err) {
+              res.status(500).send({ errorCode: 500, errorMessage: err, isSuccess: false });
+          } finally {
+              if (connection) {
+                  try {
+                      await connection.close();
+                  } catch (err) {
+                      console.error(err);
+                  }
+              }
+          }
+      });
+  }
+  catch (err) {
+      res.status(500).send({ errorCode: 500, errorMessage: err, isSuccess: false });
+  }
+
+
+
+
+  User.authenticate(user, (err, data) => {
+    if (err) {
+      return res.status(err.status).send({
+        message: err.message || 'Some error occurred.',
+        isSuccess: false,
+      });
+    } return res.status(200).send(data);
+  });
+};
+
+
+
+
