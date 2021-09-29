@@ -158,4 +158,38 @@ paymentExpress.post('/orderAmountRefund', async (req, res, next) => {
     }
 });
 
+
+paymentExpress.post('/getPaymentReleaseBySeller', async (req, res, next) => {
+    const query =
+      'CALL SP_GET_PAYMENT_RELEASE_BYSELLER(:seller_id,:months,:jsonstring)';
+    const payment_summary_binds = {
+      seller_id: req.body.sellerId,
+      months: req.body.months,
+      jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
+    };
+    const options = { autoCommit: true };
+    try {
+      db.doConnect(async (err, connection) => {
+        try {
+          const result = await connection.execute(query, payment_summary_binds, options);
+          var parseObject = JSON.parse(result.outBinds.jsonstring);
+          parseObject["isSuccess"] = true;
+          res.status(200).send(parseObject);
+        } catch (err) {
+          res.status(500).send({ errorCode: 500, errorMessage: err.message });
+        } finally {
+          if (connection) {
+            try {
+              await connection.close();
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        }
+      });
+    } catch (err) {
+      res.status(500).send({ errorCode: 500, errorMessage: err.message });
+    }
+  });
+
 module.exports = paymentExpress;
