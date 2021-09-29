@@ -239,7 +239,7 @@ userExpress.post('/updateUsersMetadata', async (req, res, next) => {
   const update_metadata_binds = {
     user_id: req.body.User_Id,
     operation_id: req.body.operationId,
-    selected_address_id: req.body.SelectedAddressOrderId
+    selected_address_id: req.body.SelectedAddressOrderId,
   };
   const options = { autoCommit: true };
   try {
@@ -247,6 +247,37 @@ userExpress.post('/updateUsersMetadata', async (req, res, next) => {
       try {
         const result = await connection.execute(query, update_metadata_binds, options);
         res.status(200).send({ isSuccess: true });
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+userExpress.post('/getUserMetaDetails', async (req, res, next) => {
+  const query = 'CALL sp_get_users_meta_details(:user_id,:userdatajson)';
+  const user_meta_detail = {
+    user_id: req.body.userId,
+    userdatajson: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, user_meta_detail, options);
+        var parseObject = JSON.parse(result.outBinds.userdatajson);
+        parseObject.userDetails[0]["isSuccess"] = true;
+        res.status(200).send(parseObject.userDetails[0]);
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
       } finally {
