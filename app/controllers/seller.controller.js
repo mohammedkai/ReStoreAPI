@@ -421,7 +421,7 @@ sellerExpress.post('/changePassword', async (req, res, next) => {
   if (login === undefined || password === undefined || newPassword === undefined) {
     return res.status(400).send({ message: 'Please enter login and password', isSuccess: false });
   }
-  const options = {};
+  const options = { autoCommit: true };
   seller_list_binds = {
     login: login,
     password: password,
