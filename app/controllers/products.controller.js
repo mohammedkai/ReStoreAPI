@@ -313,4 +313,82 @@ productExpress.get('/getMyWishList/:userId', async (req, res, next) => {
   }
 });
 
+
+
+
+
+/**
+ * @swagger
+ * /products/search:
+ *   post:
+ *     tags:
+ *       - Products
+ *     name: Product Global Search
+ *     summary: Searches a product based on the search text.
+ *     consumes:
+ *       - application/json
+ *     requestBody:
+ *       description: Add properties in JSON format.
+ *       required: true
+ *       content:
+ *        application/json:
+ *         schema:
+ *           type: object
+ *           properties:
+ *             pageNo:
+ *               type: number
+ *             pageSize:
+ *               type: number
+ *             searchText:
+ *               type: string
+ *         required:
+ *           - token
+ *     responses:
+ *       200:
+ *         description: success
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden.
+ */
+
+
+productExpress.post('/search', async (req, res, next) => {
+  const query =
+    'CALL sp_global_search_for_products(:page_no,:page_size,:search_text,:jsonstring)';
+  const product_summary_binds = {
+    page_no: req.body.pageNo,
+    page_size: req.body.pageSize,
+    search_text: req.body.searchText,
+    jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, product_summary_binds, options);
+        var parseObject = JSON.parse(result.outBinds.jsonstring);
+        parseObject["isSuccess"] = true;
+        res.status(200).send(parseObject);
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err.message });
+  }
+});
+
+
+
+
+
 module.exports = productExpress;
