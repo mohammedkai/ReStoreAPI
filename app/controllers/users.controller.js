@@ -235,9 +235,10 @@ userExpress.post('/getUsersMetadata', async (req, res, next) => {
 });
 
 userExpress.post('/updateUsersMetadata', async (req, res, next) => {
-  const query = 'CALL sp_update_user_metadata(:user_id,:operation_id,:selected_address_id)';
+    const query = 'CALL sp_update_user_metadata(:user_id,:phone_no,:operation_id,:selected_address_id)';
   const update_metadata_binds = {
-    user_id: req.body.User_Id,
+      user_id: req.body.UserId,
+      phone_no: req.body.PhoneNumber,
     operation_id: req.body.operationId,
     selected_address_id: req.body.SelectedAddressOrderId,
   };
@@ -267,7 +268,7 @@ userExpress.post('/updateUsersMetadata', async (req, res, next) => {
 userExpress.post('/getUserMetaDetails', async (req, res, next) => {
   const query = 'CALL sp_get_users_meta_details(:user_id,:userdatajson)';
   const user_meta_detail = {
-    user_id: req.body.userId,
+      user_id: req.body.UserId,
     userdatajson: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
   };
   const options = { autoCommit: true };

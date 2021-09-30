@@ -129,7 +129,6 @@ cartExpress.post('/addToCart', async (req, res, next) => {
  */
 
 cartExpress.post('/getCartItems', async (req, res, next) => {
-  await dbSvc.initialize();
   const query = 'CALL sp_get_cartitem_by_id(:userid, :ref_cur_0)';
   const cart_data_binds = {
     userid: req.body.user_id,
@@ -151,12 +150,58 @@ cartExpress.post('/getCartItems', async (req, res, next) => {
     else {
       res.status(200).send({ cartProducts: cartProductList, isSuccess : true });
     }
-
-
   } catch (error) {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
 });
+
+
+cartExpress.post('/getCartItemsV2', async (req, res, next) => {
+    const query =
+        'CALL sp_get_order_summary_byuser(:user_id,:jsonstring)';
+    const order_summary_binds = {
+        user_id: req.body.userId,
+        jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
+    };
+    
+    const options = { autoCommit: true };
+    try {
+        db.doConnect(async (err, connection) => {
+            try {
+                const result = await connection.execute(query, order_summary_binds, options);
+                var parseObject = JSON.parse(result.outBinds.jsonstring);
+                const cartsTotal = parseObject["cartTotal"];
+                const userSelectedAddress = parseObject["selectedAddress"];
+                const productwithImage = [];
+                if (parseObject["cartProduct"].length > 0)
+                {
+                    var images = await initAzureBlob();
+                    parseObject["cartProduct"].forEach((product) => {
+                        const imageresult = images.filter(image => image.metadata.ProductKey == product.IMAGE_ID);
+                        product["productImageUrl"] = [];
+                        product["productImageUrl"].push('https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + imageresult[0].name);
+                        productwithImage.push(product);
+                    });
+                }
+                const finalObject = ({ isSuccess: true, cartTotal: cartsTotal, selectedAddress: userSelectedAddress[0], cartProduct: productwithImage  })
+                res.status(200).send(finalObject);
+            } catch (err) {
+                res.status(500).send({ errorCode: 500, errorMessage: err.message });
+            } finally {
+                if (connection) {
+                    try {
+                        await connection.close();
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            }
+        });
+    } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err });
+    }
+});
+
 
 cartExpress.post('/removeItemFromCart', async (req, res, next) => {
   const sql = 'CALL sp_remove_item_from_cart(:userid, :productid)';
