@@ -307,15 +307,25 @@ sellerExpress.post('/refresh', async (req, res, next) => {
         return res.status(400).send({ message: 'Refresh Token Invalid.', isSuccess: false });
       }
 
+      
+
       const accessToken = jwt.sign({ username: login }, jwtKey, {
         algorithm: 'HS256',
         expiresIn: '20m',
       });
 
+
+      const refreshToken = jwt.sign({ username: login }, refreshTokenSecret, {
+        algorithm: 'HS256',
+        expiresIn: '30m',
+      });
+      refreshTokens.push(refreshToken);
+
       res.status(200).send({
         message: 'New Refresh Token',
         isSuccess: true,
         accessToken,
+        refreshToken
       });
     });
   } catch (err) {
