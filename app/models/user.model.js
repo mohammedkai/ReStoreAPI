@@ -323,10 +323,17 @@ User.refreshToken = function (user, result) {
 
     const accessToken = jwt.sign({ username: user.login }, jwtKey, { algorithm: 'HS256', expiresIn: '20m' });
 
+    const refreshToken = jwt.sign({ username: user.login }, refreshTokenSecret, {
+      algorithm: 'HS256',
+      expiresIn: '30m',
+    });
+    refreshTokens.push(refreshToken);
+
     result(null, {
       message: 'New Refresh Token',
       isSuccess: true,
       accessToken,
+      refreshToken
     });
   });
 };
