@@ -28,11 +28,9 @@ orderExpress.get('/getOrderedItems/:orderId', async (req, res, next) => {
 
 orderExpress.post('/submitOrder', async (req, res, next) => {
   const sql =
-    'CALL sp_create_order(:userid, :user_address_id, :order_id_status, :razor_payment_id,:orderid)';
+    'CALL sp_create_order(:userid, :razor_payment_id,:orderid)';
   const order_data_binds = {
     userid: req.body.user_id,
-    user_address_id: req.body.address_id,
-    order_id_status: req.body.order_id_status,
     razor_payment_id: req.body.razor_payment_id,
     orderid: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
   };
