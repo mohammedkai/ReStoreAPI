@@ -4,28 +4,26 @@ const oracledb = require('oracledb');
 const db = require('../dbconnections/oracledb.js');
 const connection = require('../dbconnections/db.js');
 const dbSvc = require('../config/db_svc.js');
-const { BlobServiceClient, StorageSharedKeyCredential } = require("@azure/storage-blob");
+const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
 const productExpress = express();
 productExpress.use(bodyparser.json());
 
-
 async function initAzureBlob() {
-  const account = process.env.ACCOUNT_NAME || "";
-  const accountKey = process.env.ACCOUNT_KEY || "";
+  const account = process.env.ACCOUNT_NAME || '';
+  const accountKey = process.env.ACCOUNT_KEY || '';
   const sharedKeyCredential = new StorageSharedKeyCredential(account, accountKey);
   const blobServiceClient = new BlobServiceClient(
     // When using AnonymousCredential, following url should include a valid SAS or support public access
     `https://${account}.blob.core.windows.net`,
     sharedKeyCredential
   );
-  const containerClient = blobServiceClient.getContainerClient("restoreimagecontainer");
+  const containerClient = blobServiceClient.getContainerClient('restoreimagecontainer');
   let listOfImages = [];
   for await (const blob of containerClient.listBlobsFlat({ includeMetadata: true })) {
     listOfImages.push(blob);
   }
   return listOfImages;
 }
-
 
 /**
  * @swagger
@@ -104,14 +102,15 @@ productExpress.get('/getProductDetailsById/:prodId', async (req, res, next) => {
         var productImageUrl = [];
         images.forEach(element => {
           if (element.metadata.ProductKey == productDetails.ref_cur_0[0][0].IMAGE_ID) {
-            productImageUrl.push('https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + element.name);
+            productImageUrl.push(
+              'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + element.name
+            );
           }
         });
         productDetails.ref_cur_0[0][0]['productImageUrl'] = productImageUrl;
         productDetails.ref_cur_0[0][0]['Specs'] = productDetails.ref_cur_1[0];
         res.status(200).send(productDetails.ref_cur_0[0][0]);
-      }
-      else {
+      } else {
         res.status(201).send({ errorCode: 201, errorMessage: 'No Data' });
       }
     } catch (err) {
@@ -137,10 +136,13 @@ productExpress.get('/getAllProductBySubcategory/:subCategoryId', async (req, res
     let productimage = await initAzureBlob();
     let productImageUrl = [];
     let productsList = [];
-    productList.ref_cur_0[0].forEach((element) => {
+    productList.ref_cur_0[0].forEach(element => {
       productimage.forEach(imagedetail => {
         if (imagedetail.metadata.ProductKey == element.IMAGE_ID) {
-          productImageUrl.push('https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + imagedetail.name);
+          productImageUrl.push(
+            'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+              imagedetail.name
+          );
         }
         element['productImageUrl'] = productImageUrl;
       });
@@ -185,7 +187,6 @@ productExpress.get('/getSpecsBySubCatID/:subcategoryid', async (req, res, next) 
   }
 });
 
-
 productExpress.get('/sp_get_all_masters', async (req, res, next) => {
   const query = 'BEGIN sp_get_all_masters(:ref_cur_0,:ref_cur_1,:ref_cur_2,:ref_cur_3); END;';
   const binds = {
@@ -198,10 +199,10 @@ productExpress.get('/sp_get_all_masters', async (req, res, next) => {
     const getallMasters = await dbSvc.simpleExecute(query, binds, 4, 'default');
     if (getallMasters != null && getallMasters.errorNum != 28547) {
       res.status(200).send({
-        "Categories": getallMasters.ref_cur_0[0],
-        "SubCategories": getallMasters.ref_cur_1[0],
-        "ConditionMaster": getallMasters.ref_cur_2[0],
-        "BrandMaster": getallMasters.ref_cur_3[0]
+        Categories: getallMasters.ref_cur_0[0],
+        SubCategories: getallMasters.ref_cur_1[0],
+        ConditionMaster: getallMasters.ref_cur_2[0],
+        BrandMaster: getallMasters.ref_cur_3[0],
       });
     } else {
       res.status(201).send({ errorCode: 201, errorMessage: 'No data returned' });
@@ -228,7 +229,8 @@ productExpress.post('/listnewproduct', async (req, res, next) => {
   var deliveryCharge = req.body.deliveryCharge;
   var condition = req.body.conditionID;
   var sellerId = req.body.sellerID;
-  const listProductQuery = 'CALL sp_add_new_product(:discountedprice, :brandid, :qty, :categoryid,:subcategoryid,:imageid,:productname,:manufacturerid,:warrantyinmonths,:modelno,:prodesc,:isdelchargeapplication,:deliverycharge,:conditionid,:sellersid,:productid)';
+  const listProductQuery =
+    'CALL sp_add_new_product(:discountedprice, :brandid, :qty, :categoryid,:subcategoryid,:imageid,:productname,:manufacturerid,:warrantyinmonths,:modelno,:prodesc,:isdelchargeapplication,:deliverycharge,:conditionid,:sellersid,:productid)';
 
   const productbindings = {
     discountedprice: productPrice,
@@ -252,10 +254,13 @@ productExpress.post('/listnewproduct', async (req, res, next) => {
   try {
     db.doConnect(async (err, connection) => {
       const result = await connection.execute(listProductQuery, productbindings, options);
-      res.status(200).send({ message: 'Order has been submitted', isSuccess: true, ProductID: result.outBinds.productid });
+      res.status(200).send({
+        message: 'Order has been submitted',
+        isSuccess: true,
+        ProductID: result.outBinds.productid,
+      });
     });
-  }
-  catch (err) {
+  } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err, isSuccess: false });
   }
 
@@ -269,12 +274,11 @@ productExpress.post('/addProductSpecs', async (req, res, next) => {
     const options = {};
     var productSpecList = req.body;
     db.doConnect(async (err, connection) => {
-      productSpecList.forEach(async (specItem) => {
-        const productbindings =
-        {
+      productSpecList.forEach(async specItem => {
+        const productbindings = {
           productid: specItem.productId,
           specid: specItem.spec_Id,
-          specvalue: specItem.specValue
+          specvalue: specItem.specValue,
         };
         const result = await connection.execute(addspecsquery, productbindings, options);
       });
@@ -297,10 +301,13 @@ productExpress.get('/getMyWishList/:userId', async (req, res, next) => {
     let productimage = await initAzureBlob();
     let productImageUrl = [];
     let productsList = [];
-    productList.ref_cur_0[0].forEach((element) => {
+    productList.ref_cur_0[0].forEach(element => {
       productimage.forEach(imagedetail => {
         if (imagedetail.metadata.ProductKey == element.IMAGE_ID) {
-          productImageUrl.push('https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + imagedetail.name);
+          productImageUrl.push(
+            'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+              imagedetail.name
+          );
         }
         element['productImageUrl'] = productImageUrl;
       });
@@ -312,10 +319,6 @@ productExpress.get('/getMyWishList/:userId', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
-
-
-
-
 
 /**
  * @swagger
@@ -352,10 +355,8 @@ productExpress.get('/getMyWishList/:userId', async (req, res, next) => {
  *         description: Forbidden.
  */
 
-
 productExpress.post('/search', async (req, res, next) => {
-  const query =
-    'CALL sp_global_search_for_products(:page_no,:page_size,:search_text,:jsonstring)';
+  const query = 'CALL sp_global_search_for_products(:page_no,:page_size,:search_text,:jsonstring)';
   const product_summary_binds = {
     page_no: req.body.pageNo,
     page_size: req.body.pageSize,
@@ -368,7 +369,7 @@ productExpress.post('/search', async (req, res, next) => {
       try {
         const result = await connection.execute(query, product_summary_binds, options);
         var parseObject = JSON.parse(result.outBinds.jsonstring);
-        parseObject["isSuccess"] = true;
+        parseObject['isSuccess'] = true;
         res.status(200).send(parseObject);
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
@@ -387,8 +388,52 @@ productExpress.post('/search', async (req, res, next) => {
   }
 });
 
-
-
-
+productExpress.post('/getProductDetailsByIdRef', async (req, res, next) => {
+  const query = 'CALL sp_get_product_detail_by_ref(:productid,:productref,:users_id,:finaljsonstring)';
+  const productDetailBind = {
+    productid: req.body.ProductId,
+    productref: req.body.ReferenceId,
+    users_id : req.body.UserId,
+    finaljsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, productDetailBind, options);
+        var parseObject = JSON.parse(result.outBinds.finaljsonstring);
+        if (parseObject.productDetails.length > 0) {
+          var images = await initAzureBlob();
+          var productImageUrl = [];
+          images.forEach(element => {
+            if (element.metadata.ProductKey == parseObject.productDetails[0].ProductImageId) {
+              productImageUrl.push(
+                'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+                  element.name
+              );
+            }
+          });
+          parseObject.productDetails[0]['ProductImageUrl'] = productImageUrl;
+          parseObject.productDetails[0]['isSuccess'] = true;
+          res.status(200).send(parseObject.productDetails[0]);
+        } else {
+          res.status(200).send({ isSuccess: false });
+        }
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err.message });
+  }
+});
 
 module.exports = productExpress;

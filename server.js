@@ -190,4 +190,4 @@ const setupServer = isClusterRequired => {
         setUpExpress();
     }
 };
-setupServer(false);
+setupServer(true);
