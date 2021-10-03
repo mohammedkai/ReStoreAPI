@@ -154,4 +154,36 @@ orderExpress.post('/getOrderSummary', async (req, res, next) => {
 });
 
 
+orderExpress.post('/getOrderListByUserId', async (req, res, next) => {
+  const query = 'CALL sp_get_order_details_by_userid(:users_id,:jsonstring)';
+  const orderdetaiListBind = {
+    users_id : req.body.UserId,
+    jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100000 },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, orderdetaiListBind, options);
+        var parseObject = JSON.parse(result.outBinds.jsonstring);
+        parseObject["isSuccess"]= true;
+        res.status(200).send(parseObject);
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message, isSuccess:false });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err.message });
+  }
+});
+
+
 module.exports = orderExpress;
