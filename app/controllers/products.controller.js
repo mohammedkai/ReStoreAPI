@@ -389,9 +389,9 @@ productExpress.post('/search', async (req, res, next) => {
 });
 
 productExpress.post('/getProductDetailsByIdRef', async (req, res, next) => {
-  const query = 'CALL sp_get_product_detail_by_ref(:productid,:productref,:users_id,:finaljsonstring)';
+  const query = 'CALL sp_get_product_detail_by_ref(:products_id,:productref,:users_id,:finaljsonstring)';
   const productDetailBind = {
-    productid: req.body.ProductId,
+    products_id: req.body.ProductId,
     productref: req.body.ReferenceId,
     users_id : req.body.UserId,
     finaljsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
