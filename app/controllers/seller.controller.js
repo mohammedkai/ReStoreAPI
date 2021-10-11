@@ -12,6 +12,7 @@ const jwtKey = process.env.JWT_SECRET;
 const refreshTokenSecret = process.env.REFRESH_SECRET;
 const jwt = require('jsonwebtoken');
 const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
+const sendEmail = require('../utils/emailHelper');
 
 async function initAzureBlob() {
   const account = process.env.ACCOUNT_NAME || '';
@@ -713,5 +714,27 @@ sellerExpress.post('/submitSellerDocuments', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
+
+
+
+
+
+sellerExpress.post('/sendEmail', async (req, res, next) => {
+  try {
+    let mailDetails = {
+      to: 'mohammedkai21@gmail.com',
+      subject: 'Test mail',
+      html: 'Node.js testing mail for Re-Store'
+  };
+
+  const responseResult = await sendEmail(mailDetails);
+  console.log(responseResult);
+  res.status(200).send({isSuccess:true})
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: error});
+  }
+});
+
+
 
 module.exports = sellerExpress;
