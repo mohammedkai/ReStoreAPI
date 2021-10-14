@@ -59,4 +59,4 @@
   );
 }
 
-module.exports = {templateString,checkSpecialChars,checkNumberOnly,checkAlphaNumeric,checkAlphaNumericWithExceptions,replaceAll};
+module.exports = {templateString,checkSpecialChars,checkNumberOnly,checkAlphaNumeric,replaceAll};
