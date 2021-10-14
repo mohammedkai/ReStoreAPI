@@ -160,7 +160,7 @@ cartExpress.post('/getCartItemsV2', async (req, res, next) => {
     const query =
         'CALL sp_get_order_summary_byuser(:user_id,:jsonstring)';
     const order_summary_binds = {
-        user_id: req.body.userId,
+      user_id: req.body.userId,
         jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
     };
     
