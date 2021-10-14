@@ -25,6 +25,9 @@ exports.swaggerSetup = {
         url: 'http://140.238.254.19:8080/',
       },
       {
+        url: 'https://restoreapiv22.azurewebsites.net/',
+      },
+      {
         url: 'http://localhost:8080/',
       },
     ],

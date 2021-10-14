@@ -7,8 +7,13 @@ const userExpress = express();
 const { OAuth2Client } = require('google-auth-library');
 const fbadmin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
+const sendEmail = require('../utils/emailHelper.js');
 const jwtKey = process.env.JWT_SECRET;
 const refreshTokenSecret = process.env.REFRESH_SECRET;
+const fs = require('fs');
+const path = require('path');
+const mustache = require('mustache');
+const { templateString } = require('../utils/StringUtils');
 
 userExpress.post('/checkIfUserExist', async (req, res, next) => {
   const query = 'CALL sp_check_login_credentials(:dynamic_name, :column_value,:ispresent)';
@@ -276,7 +281,7 @@ userExpress.post('/getUserMetaDetails', async (req, res, next) => {
       try {
         const result = await connection.execute(query, user_meta_detail, options);
         var parseObject = JSON.parse(result.outBinds.userdatajson);
-        parseObject.userDetails[0]["isSuccess"] = true;
+        parseObject.userDetails[0]['isSuccess'] = true;
         res.status(200).send(parseObject.userDetails[0]);
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
@@ -289,6 +294,73 @@ userExpress.post('/getUserMetaDetails', async (req, res, next) => {
           }
         }
       }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+userExpress.post('/sendVerifyEmail', async (req, res, next) => {
+  try {
+    const email = req.body.login;
+    const accessToken = jwt.sign({ username: email }, jwtKey, {
+      algorithm: 'HS256',
+      expiresIn: '24h',
+    });
+    const replacement = {
+      VERIFICATION_LINK: `${process.env.AZURE_API_URL}/users/verifyEmail?token=${accessToken}`,
+    };
+    let subject = 'Please verify your email for ReStore';
+    let htmlPath = path.join(__dirname, '..', 'templates', 'verifyTemplate.html');
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+    let html = templateString(htmlContent, replacement);
+    const emailResponse = await sendEmail({ to: email, subject, html });
+
+    res.status(200).send(emailResponse);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+userExpress.get('/verifyEmail', async (req, res, next) => {
+  const query = `UPDATE users_metadata_table SET ISEMAILVERIFIED = 1 WHERE USERSID = (select id from users where login = :login)`;
+  const options = { autoCommit: true };
+  try {
+    const token = req.query.token;
+    if (!token) {
+      return res.status(403).send({ message: 'No token provided.', isSuccess: false });
+    }
+    let replacement = {
+      MESSAGE: `User verified successfully. Please login to the application`,
+    };
+    let htmlPath = path.join(__dirname, '..', 'templates', 'emailVerified.html');
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    jwt.verify(token, jwtKey, (err, response) => {
+      if (err) {
+        replacement['MESSAGE'] = 'Invalid Token';
+
+        return res.status(200).send(templateString(htmlContent, replacement));
+      }
+      const update_metadata_binds = {
+        login: response.username,
+      };
+      db.doConnect(async (err, connection) => {
+        try {
+          const result = await connection.execute(query, update_metadata_binds, options);
+          return res.status(200).send(templateString(htmlContent, replacement));
+        } catch (err) {
+          res.status(500).send({ errorCode: 500, errorMessage: err.message });
+        } finally {
+          if (connection) {
+            try {
+              await connection.close();
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        }
+      });
     });
   } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err });
