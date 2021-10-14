@@ -235,19 +235,31 @@ userExpress.post('/getUsersMetadata', async (req, res, next) => {
 });
 
 userExpress.post('/updateUsersMetadata', async (req, res, next) => {
-    const query = 'CALL sp_update_user_metadata(:user_id,:phone_no,:operation_id,:selected_address_id)';
+  const query =
+    'CALL sp_update_user_metadata(:user_id,:phone_no,:operation_id,:selected_address_id,:fullname,:emailid,:issuccess)';
   const update_metadata_binds = {
-      user_id: req.body.UserId,
-      phone_no: req.body.PhoneNumber,
+    user_id: req.body.UserId,
+    phone_no: req.body.PhoneNumber,
     operation_id: req.body.operationId,
     selected_address_id: req.body.SelectedAddressOrderId,
+    fullname: req.body.FirstName,
+    emailid: req.body.EmailAddress,
+    issuccess: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
   };
   const options = { autoCommit: true };
   try {
     db.doConnect(async (err, connection) => {
       try {
         const result = await connection.execute(query, update_metadata_binds, options);
-        res.status(200).send({ isSuccess: true });
+        if(result.outBinds.issuccess == 2)
+        {
+          res.status(200).send({ isSuccess: false, errorMessage : "Email id is already registered with other user"  });
+        }
+        else
+        {
+          res.status(200).send({ isSuccess: true });
+        }
+        
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
       } finally {
@@ -268,7 +280,7 @@ userExpress.post('/updateUsersMetadata', async (req, res, next) => {
 userExpress.post('/getUserMetaDetails', async (req, res, next) => {
   const query = 'CALL sp_get_users_meta_details(:user_id,:userdatajson)';
   const user_meta_detail = {
-      user_id: req.body.UserId,
+    user_id: req.body.UserId,
     userdatajson: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
   };
   const options = { autoCommit: true };
@@ -277,7 +289,7 @@ userExpress.post('/getUserMetaDetails', async (req, res, next) => {
       try {
         const result = await connection.execute(query, user_meta_detail, options);
         var parseObject = JSON.parse(result.outBinds.userdatajson);
-        parseObject.userDetails[0]["isSuccess"] = true;
+        parseObject.userDetails[0]['isSuccess'] = true;
         res.status(200).send(parseObject.userDetails[0]);
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
