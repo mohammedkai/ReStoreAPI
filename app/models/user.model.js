@@ -69,7 +69,7 @@ function insertUser(user, callback) {
 }
 
 function authenticateUser(user, callback) {
-  const sql = 'Select PASSWORD,UUID from users where login=:login and ISACTIVE=1 ';
+  const sql = 'select u.PASSWORD,u.UUID,um.isemailverified from users u JOIN users_metadata_table um on u.id= um.usersid where u.login=:login and u.ISACTIVE=1';
   db.doConnect((err, connection) => 
   {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
@@ -91,6 +91,10 @@ function authenticateUser(user, callback) {
         db.doRelease(connection); // RELEASE CONNECTION
         if (res.rows.length === 0) {
           return callback('No user found');
+        }
+        console.log(res.rows[0]);
+        if(res.rows[0].ISEMAILVERIFIED==0){
+          return callback('Email is not verified. Please complete the verification process');
         }
         return callback(null, res.rows[0]); // ALL IS GOOD
       },
@@ -248,28 +252,34 @@ User.create = function (newUser, result) {
 User.authenticate = function (newUser, result) {
   authenticateUser(newUser, (err, res) => {
     if (err) {
-      console.log('Username does not exist.');
-      return result({ message: 'No user found.', status: 404 });
+      if(err.startsWith('No user')){
+        console.log('Username does not exist.');
+        return result({ message: 'No user found.', status: 404,isSuccess:false });
+      }
+      if(err.startsWith('Email is')){
+        console.log('Email is not verified. Please complete the verification process');
+        return result({ message: 'Email is not verified. Please complete the verification process', status: 401,isSuccess:false });
     }
+  }
 
     updateLoginTime(newUser, (err, res) => {
       if (err) {
         console.log('Error in updating User Login Time.');
-        return result({ message: 'Error in updating User Login Time.', status: 500 });
+        return result({ message: 'Error in updating User Login Time.', status: 500,isSuccess:false });
       }
     });
 
     updateFireBaseToken(newUser, (err, res) => {
       if (err) {
         console.log('Error in updating Fire Base Token.');
-        return result({ message: 'Error in updating Fire Base Token.', status: 500 });
+        return result({ message: 'Error in updating Fire Base Token.', status: 500,isSuccess:false });
       }
     });
 
     const passwordAuth = bcrypt.compareSync(newUser.password, res.PASSWORD); // false
 
     if (!passwordAuth) {
-      return result({ message: 'Authentication failed. Invalid password.', status: 401 });
+      return result({ message: 'Authentication failed. Invalid password.', status: 401,isSuccess:false });
     }
 
     const accessToken = jwt.sign({ username: newUser.login }, jwtKey, {
@@ -309,16 +319,16 @@ User.refreshToken = function (user, result) {
   const token = user.authId;
 
   if (!token) {
-    return result({ message: 'Refresh token cannot be empty.', status: 401 });
+    return result({ message: 'Refresh token cannot be empty.', status: 401,isSuccess:false });
   }
 
   if (!refreshTokens.includes(token)) {
-    return result({ message: 'Refresh Token Invalid.', status: 403 });
+    return result({ message: 'Refresh Token Invalid.', status: 403,isSuccess:false });
   }
 
   jwt.verify(token, refreshTokenSecret, (err, res) => {
     if (err) {
-      return result({ message: 'Refresh Token Invalid.', status: 403 });
+      return result({ message: 'Refresh Token Invalid.', status: 403,isSuccess:false });
     }
 
     const accessToken = jwt.sign({ username: user.login }, jwtKey, { algorithm: 'HS256', expiresIn: '20m' });
@@ -342,20 +352,20 @@ User.updatePassword = function (user, result) {
   authenticateUser(user, (err, res) => {
     if (err) {
       console.log('Username does not exist.');
-      return result({ message: 'No user found.', status: 404 });
+      return result({ message: 'No user found.', status: 404,isSuccess:false });
     }
-    const passwordAuth = bcrypt.compareSync(user.password, res.PASSWORD); // false
+   /*  const passwordAuth = bcrypt.compareSync(user.password, res.PASSWORD); // false
 
     if (!passwordAuth) {
       return result({ message: 'Authentication failed. Invalid password.', status: 401 });
-    }
+    } */
 
-    user.newPassword = bcrypt.hashSync(user.newPassword, parseInt(saltingRounds, 10));
+    user.newPassword = bcrypt.hashSync(user.password, parseInt(saltingRounds, 10));
 
     changePassword(user, (err, res) => {
       if (err) {
         console.log('Username does not exist.');
-        result({ message: err.message, status: 500 });
+        result({ message: err.message, status: 500,isSuccess:false });
       }
 
       result(null, {
@@ -370,7 +380,7 @@ User.getUserDetails = function (uuid, result) {
   getDetails(uuid, (err, res) => {
     if (err) {
       console.log('Username does not exist.');
-      return result({ message: 'No user found.', status: 404 });
+      return result({ message: 'No user found.', status: 404,isSuccess:false });
     }
     result(null, { isSuccess: true, ...res });
   });
@@ -380,7 +390,7 @@ User.remove = function (uuid, result) {
   deactivateUser(uuid, (err, res) => {
     if (err) {
       console.log('Username does not exist.');
-      return result({ message: 'No user found.', status: 404 });
+      return result({ message: 'No user found.', status: 404,isSuccess:false });
     }
     result(null, {
       message: 'User deactivated successfully.',

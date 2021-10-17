@@ -12,7 +12,6 @@ const jwtKey = process.env.JWT_SECRET;
 const refreshTokenSecret = process.env.REFRESH_SECRET;
 const fs = require('fs');
 const path = require('path');
-const mustache = require('mustache');
 const { templateString } = require('../utils/StringUtils');
 
 userExpress.post('/checkIfUserExist', async (req, res, next) => {
@@ -375,6 +374,60 @@ userExpress.get('/verifyEmail', async (req, res, next) => {
         }
       });
     });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+
+userExpress.post('/resetPasswordEmail', async (req, res, next) => {
+  try {
+    const email = req.body.login;
+    const accessToken = jwt.sign({ username: email }, jwtKey, {
+      algorithm: 'HS256',
+      expiresIn: '24h',
+    });
+    const replacement = {
+      // RESET_LINK: `${process.env.AZURE_API_URL}/users/openNewPassword?token=${accessToken}`,
+      RESET_LINK: `http://localhost:8080/users/openNewPassword?token=${accessToken}&login=${email}`,
+    };
+    let subject = 'ReStore: Reset your password';
+    let htmlPath = path.join(__dirname, '..', 'templates', 'resetPassword.html');
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+    let html = templateString(htmlContent, replacement);
+    const emailResponse = await sendEmail({ to: email, subject, html });
+
+    res.status(200).send(emailResponse);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+
+userExpress.get('/openNewPassword', async (req, res, next) => {
+  try {
+    const token = req.query.token;
+    const email = req.query.login;
+    if (!token) {
+      return res.status(403).send({ message: 'No token provided.', isSuccess: false });
+    }
+
+    const replacement = {
+      UPDATE_PASSWORD: `${process.env.AZURE_API_URL}/user/changePassword`,
+      // UPDATE_PASSWORD: `http://localhost:8080/user/changePassword`,
+    };
+
+
+    jwt.verify(token, jwtKey, (err, response) => {
+      if (err) {
+        return res.status(200).send({isSuccess:false,message:'Invalid Token'});
+      }
+      let htmlPath = path.join(__dirname, '..', 'templates', 'changePassword.html');
+      let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+      let html = templateString(htmlContent, replacement);
+      res.status(200).send(html);
+    });
+  
   } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
