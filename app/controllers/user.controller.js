@@ -307,7 +307,7 @@ exports.updatePassword = (req, res) => {
   const user = new User({
     login: req.body.login,
     password: req.body.password,
-    newPassword: req.body.newPassword,
+    // newPassword: req.body.newPassword,
   });
 
   User.updatePassword(user, (err, data) => {
