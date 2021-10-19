@@ -80,7 +80,6 @@ orderExpress.post('/submitOrder', async (req, res, next) => {
 });
 
 orderExpress.post('/getAllOrders', async (req, res, next) => {
-  await dbSvc.initialize();
   const orderlistsql = 'CALL sp_get_order_details(:userid, :orderid , :ref_cur_0)';
   const orderproductlistsql = 'CALL sp_get_product_from_orders(:orderid, :ref_cur_0)';
   const order_list_binds = {
@@ -166,8 +165,10 @@ orderExpress.post('/getOrderListByUserId', async (req, res, next) => {
         var parseObject = JSON.parse(result.outBinds.jsonstring);
         parseObject.UsersOrderList.forEach(orderdetail => {
           orderdetail.OrderItemList.forEach(orderitem => {
-            var prodImage = images.find(x => (x.metadata.ProductKey == orderitem.ProductImageId));
-            orderitem["ProductImageUrl"] =  'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + prodImage.name;
+            var prodImage = images.find(x => x.metadata.ProductKey == orderitem.ProductImageId);
+            orderitem['ProductImageUrl'] =
+              'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+              prodImage.name;
           });
         });
         parseObject['isSuccess'] = true;
