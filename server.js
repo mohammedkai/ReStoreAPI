@@ -18,12 +18,13 @@ const userorder = require('./app/controllers/orders.controller');
 const payments = require('./app/controllers/payment.controller');
 const userscontroller = require('./app/controllers/users.controller');
 const sellercontroller = require('./app/controllers/seller.controller');
+const appdatacontroller = require('./app/controllers/appdata.controller');
 const ip = require('ip');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const { swaggerSetup } = require('./app/config/swaggerSetup');
 const category = require('./app/routes/category.routes');
-const authJwt = require('./app/middleware/authJwt');
+const authJwt = require('./app/middleware/authJwt');    
 const { auth } = require('firebase-admin');
 const https = require('https');
 const fs = require('fs');
@@ -140,7 +141,8 @@ const setUpExpress = () => {
     app.use('/orders', userorder);
     app.use('/payments', payments);
     app.use('/sellers', sellercontroller);
-
+    app.use('/apps', appdatacontroller);
+    
     app.use((err, req, res, next) => {
         logger.error('Error occured', { message: err.message, stack: err.stack });
         res.status(500).send({
