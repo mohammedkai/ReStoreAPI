@@ -128,6 +128,32 @@ function changePassword(user, callback) {
   });
 }
 
+
+function updateToken(user, callback) {
+  const sql = 'UPDATE users_metadata_table SET token = NULL WHERE USERSID = (select id from users where login = :login)';
+  db.doConnect((err, connection) => {
+    console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
+    if (err) {
+      console.log('ERROR: Unable to get a connection ');
+      return callback(err);
+    }
+    db.doExecute(
+      connection, sql,
+      {
+        login: user.login,
+      }, // PASS BIND PARAMS IN HERE - SEE ORACLEDB DOCS
+      (err, res) => {
+        if (err) {
+          db.doRelease(connection); // RELEASE CONNECTION
+          return callback(err); // ERROR
+        }
+        db.doRelease(connection); // RELEASE CONNECTION
+        return callback(null, 'Token Updated'); // ALL IS GOOD
+      },
+    );
+  });
+}
+
 function updateLoginTime(user, callback) {
   const sql = "Update Users set LAST_LOGIN = to_timestamp(:currentDate,'MM/DD/YYYY HH24:MI:SS') where LOGIN =:login";
   db.doConnect((err, connection) => {
@@ -368,9 +394,15 @@ User.updatePassword = function (user, result) {
         result({ message: err.message, status: 500,isSuccess:false });
       }
 
-      result(null, {
-        message: 'Password changed successfully.',
-        isSuccess: true,
+      updateToken(user, (err, res) => {
+        if (err) {
+          console.log('Token update false.');
+          result({ message: err.message, status: 500,isSuccess:false });
+        }
+        result(null, {
+          message: 'Password changed successfully.',
+          isSuccess: true,
+        });
       });
     });
   });

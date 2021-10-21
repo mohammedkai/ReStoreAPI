@@ -382,22 +382,43 @@ userExpress.get('/verifyEmail', async (req, res, next) => {
 
 userExpress.post('/resetPasswordEmail', async (req, res, next) => {
   try {
+    const query = `UPDATE users_metadata_table SET token = :token WHERE USERSID = (select id from users where login = :login)`;
+    const options = { autoCommit: true };
     const email = req.body.login;
     const accessToken = jwt.sign({ username: email }, jwtKey, {
       algorithm: 'HS256',
       expiresIn: '24h',
     });
     const replacement = {
-      // RESET_LINK: `${process.env.AZURE_API_URL}/users/openNewPassword?token=${accessToken}`,
-      RESET_LINK: `http://localhost:8080/users/openNewPassword?token=${accessToken}&login=${email}`,
+      RESET_LINK: `${process.env.AZURE_API_URL}/users/openNewPassword?token=${accessToken}&login=${email}`,
+      // RESET_LINK: `http://localhost:8080/users/openNewPassword?token=${accessToken}&login=${email}`,
     };
     let subject = 'ReStore: Reset your password';
     let htmlPath = path.join(__dirname, '..', 'templates', 'resetPassword.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
+    const update_metadata_binds = {
+      login: email,
+      token:accessToken
+    };
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, update_metadata_binds, options);
+        return res.status(200).send(emailResponse);
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
 
-    res.status(200).send(emailResponse);
   } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
@@ -406,27 +427,57 @@ userExpress.post('/resetPasswordEmail', async (req, res, next) => {
 
 userExpress.get('/openNewPassword', async (req, res, next) => {
   try {
+    const query = `select u.id,u.login,um.token from users u JOIN users_metadata_table um on u.id = um.USERSID where u.login =  :login`;
     const token = req.query.token;
     const email = req.query.login;
+    const options = { autoCommit: true };
     if (!token) {
       return res.status(403).send({ message: 'No token provided.', isSuccess: false });
     }
 
-    const replacement = {
-      UPDATE_PASSWORD: `${process.env.AZURE_API_URL}/user/changePassword`,
-      // UPDATE_PASSWORD: `http://localhost:8080/user/changePassword`,
+    const select_metadata_binds = {
+      login: email,
     };
 
-
-    jwt.verify(token, jwtKey, (err, response) => {
-      if (err) {
-        return res.status(200).send({isSuccess:false,message:'Invalid Token'});
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, select_metadata_binds, options);
+        const userToken = result['rows'][0][2];
+        if(userToken==null){
+          return res.status(200).send({isSuccess:false,message:'Link Expired. You have already changed your password'});
+        }
+        else if(token!=userToken){
+          return res.status(404).send({isSuccess:false,message:'Invalid Token'});
+        }
+        const replacement = {
+          UPDATE_PASSWORD: `${process.env.AZURE_API_URL}/user/changePassword`,
+          // UPDATE_PASSWORD: `http://localhost:8080/user/changePassword`,
+        };
+    
+    
+    
+        jwt.verify(token, jwtKey, (err, response) => {
+          if (err) {
+            return res.status(200).send({isSuccess:false,message:'Invalid Token'});
+          }
+          let htmlPath = path.join(__dirname, '..', 'templates', 'changePassword.html');
+          let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+          let html = templateString(htmlContent, replacement);
+          res.status(200).send(html);
+        });
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
       }
-      let htmlPath = path.join(__dirname, '..', 'templates', 'changePassword.html');
-      let htmlContent = fs.readFileSync(htmlPath, 'utf8');
-      let html = templateString(htmlContent, replacement);
-      res.status(200).send(html);
     });
+
   
   } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err });
