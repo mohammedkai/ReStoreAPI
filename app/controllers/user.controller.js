@@ -72,7 +72,8 @@ exports.create = (req, res, next) => {
     authId: null,
     middleName: req.body.middleName,
     uuid : req.body.uuid,
-    phonenumber:req.body.phonenumber
+    phonenumber:req.body.phonenumber,
+    isOAuth:req.body.isOAuth
   });
   // Save user in the database
   User.create(user, (err, data) => {
