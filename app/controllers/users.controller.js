@@ -255,15 +255,16 @@ userExpress.post('/updateUsersMetadata', async (req, res, next) => {
     db.doConnect(async (err, connection) => {
       try {
         const result = await connection.execute(query, update_metadata_binds, options);
-        if(result.outBinds.issuccess == 2)
-        {
-          res.status(200).send({ isSuccess: false, errorMessage : "Email id is already registered with other user"  });
-        }
-        else
-        {
+        if (result.outBinds.issuccess == 2) {
+          res
+            .status(200)
+            .send({
+              isSuccess: false,
+              errorMessage: 'Email id is already registered with other user',
+            });
+        } else {
           res.status(200).send({ isSuccess: true });
         }
-        
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
       } finally {
@@ -379,12 +380,11 @@ userExpress.get('/verifyEmail', async (req, res, next) => {
   }
 });
 
-
 userExpress.post('/resetPasswordEmail', async (req, res, next) => {
   try {
     const query = `UPDATE users_metadata_table SET token = :token WHERE USERSID = (select id from users where login = :login)`;
     const options = { autoCommit: true };
-    const email = req.body.login;
+    const email = req.body.EmailAddress;
     const accessToken = jwt.sign({ username: email }, jwtKey, {
       algorithm: 'HS256',
       expiresIn: '24h',
@@ -400,7 +400,7 @@ userExpress.post('/resetPasswordEmail', async (req, res, next) => {
     const emailResponse = await sendEmail({ to: email, subject, html });
     const update_metadata_binds = {
       login: email,
-      token:accessToken
+      token: accessToken,
     };
     db.doConnect(async (err, connection) => {
       try {
@@ -418,12 +418,10 @@ userExpress.post('/resetPasswordEmail', async (req, res, next) => {
         }
       }
     });
-
   } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
-
 
 userExpress.get('/openNewPassword', async (req, res, next) => {
   try {
@@ -443,22 +441,24 @@ userExpress.get('/openNewPassword', async (req, res, next) => {
       try {
         const result = await connection.execute(query, select_metadata_binds, options);
         const userToken = result['rows'][0][2];
-        if(userToken==null){
-          return res.status(200).send({isSuccess:false,message:'Link Expired. You have already changed your password'});
-        }
-        else if(token!=userToken){
-          return res.status(404).send({isSuccess:false,message:'Invalid Token'});
+        if (userToken == null) {
+          return res
+            .status(200)
+            .send({
+              isSuccess: false,
+              message: 'Link Expired. You have already changed your password',
+            });
+        } else if (token != userToken) {
+          return res.status(404).send({ isSuccess: false, message: 'Invalid Token' });
         }
         const replacement = {
           UPDATE_PASSWORD: `${process.env.AZURE_API_URL}/user/changePassword`,
           // UPDATE_PASSWORD: `http://localhost:8080/user/changePassword`,
         };
-    
-    
-    
+
         jwt.verify(token, jwtKey, (err, response) => {
           if (err) {
-            return res.status(200).send({isSuccess:false,message:'Invalid Token'});
+            return res.status(200).send({ isSuccess: false, message: 'Invalid Token' });
           }
           let htmlPath = path.join(__dirname, '..', 'templates', 'changePassword.html');
           let htmlContent = fs.readFileSync(htmlPath, 'utf8');
@@ -477,8 +477,6 @@ userExpress.get('/openNewPassword', async (req, res, next) => {
         }
       }
     });
-
-  
   } catch (err) {
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
