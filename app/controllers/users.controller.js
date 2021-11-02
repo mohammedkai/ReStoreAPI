@@ -13,6 +13,7 @@ const refreshTokenSecret = process.env.REFRESH_SECRET;
 const fs = require('fs');
 const path = require('path');
 const { templateString } = require('../utils/StringUtils');
+const User = require('../models/user.model.js');
 
 userExpress.post('/checkIfUserExist', async (req, res, next) => {
   const query = 'CALL sp_check_login_credentials(:dynamic_name, :column_value,:ispresent)';
@@ -76,9 +77,10 @@ async function verifyToken(token, resObject) {
       verfiyUserExistPara = {
         dynamic_name: columname,
         column_value: reuqestparam,
-        ispresent: { dir: oracledb.BIND_OUT, type: oracledb.VACHAR },
+        ispresent: { dir: oracledb.BIND_OUT, type: oracledb.VARCHAR },
       };
-      try {
+      try 
+      {
         db.doConnect(async (err, connection) => {
           try {
             const result = await connection.execute(query, verfiyUserExistPara, options);
@@ -113,7 +115,8 @@ async function verifyToken(token, resObject) {
             }
           } catch (err) {
             resObject.status(500).send({ errorCode: 500, errorMessage: err });
-          } finally {
+          } finally 
+          {
             if (connection) {
               try {
                 await connection.close();
@@ -256,12 +259,10 @@ userExpress.post('/updateUsersMetadata', async (req, res, next) => {
       try {
         const result = await connection.execute(query, update_metadata_binds, options);
         if (result.outBinds.issuccess == 2) {
-          res
-            .status(200)
-            .send({
-              isSuccess: false,
-              errorMessage: 'Email id is already registered with other user',
-            });
+          res.status(200).send({
+            isSuccess: false,
+            errorMessage: 'Email id is already registered with other user',
+          });
         } else {
           res.status(200).send({ isSuccess: true });
         }
@@ -442,12 +443,10 @@ userExpress.get('/openNewPassword', async (req, res, next) => {
         const result = await connection.execute(query, select_metadata_binds, options);
         const userToken = result['rows'][0][2];
         if (userToken == null) {
-          return res
-            .status(200)
-            .send({
-              isSuccess: false,
-              message: 'Link Expired. You have already changed your password',
-            });
+          return res.status(200).send({
+            isSuccess: false,
+            message: 'Link Expired. You have already changed your password',
+          });
         } else if (token != userToken) {
           return res.status(404).send({ isSuccess: false, message: 'Invalid Token' });
         }

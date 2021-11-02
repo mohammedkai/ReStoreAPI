@@ -24,12 +24,13 @@ const User = function (user) {
   this.phonenumber = user.phonenumber;
   this.uuid = user.uuid;
   this.isOAuth = user.isOAuth;
+  this.isPhoneVerified=user.isPhoneVerified
 };
 
 function insertUser(user, callback) {
   //const sql = 'INSERT INTO users (FIRST_NAME,MIDDLE_NAME,LAST_NAME,LOGIN,ISACTIVE,ROLE_ID,PASSWORD,UUID) values (:firstname, :middleName, :lastName,:login, :isActive, :role,:password,:uuid)';
   const sql =
-    'CALL sp_register_new_user(:firstname, :lastname, :phone_name, :user_password,:email_id,:userrole,:udid,:isOAuth,:res)';
+    'CALL sp_register_new_user(:firstname, :lastname, :phone_name, :user_password,:email_id,:userrole,:udid,:isOAuth,:isPhoneVerified,:res)';
   const reg_user_binds = {
     firstname: user.firstName,
     lastname: user.lastName,
@@ -39,6 +40,7 @@ function insertUser(user, callback) {
     userrole: user.role,
     udid: user.uuid,
     isOAuth: user.isOAuth,
+    isPhoneVerified:user.isPhoneVerified,
     res: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
   };
   const options = {};
