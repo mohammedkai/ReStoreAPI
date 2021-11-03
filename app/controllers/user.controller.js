@@ -74,7 +74,7 @@ exports.create = (req, res, next) => {
     phonenumber: req.body.phonenumber,
     isOAuth: req.body.isOauthRegistered,
     isPhoneVerified:req.body.isPhoneVerified
-  })
+  });
   // Save user in the database
   User.create(user, (err, data) => {
     if (err) {

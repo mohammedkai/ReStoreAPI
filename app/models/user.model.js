@@ -339,7 +339,7 @@ User.authenticate = function (newUser, result) {
 
     const refreshToken = jwt.sign({ username: newUser.login }, refreshTokenSecret, {
       algorithm: 'HS256',
-      expiresIn: '30m',
+      expiresIn: '15d',
     });
     refreshTokens.push(refreshToken);
 
@@ -388,7 +388,7 @@ User.refreshToken = function (user, result) {
 
     const refreshToken = jwt.sign({ username: user.login }, refreshTokenSecret, {
       algorithm: 'HS256',
-      expiresIn: '30m',
+      expiresIn: '15d',
     });
     refreshTokens.push(refreshToken);
 
