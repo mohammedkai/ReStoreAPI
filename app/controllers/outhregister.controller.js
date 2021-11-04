@@ -15,57 +15,59 @@ const path = require('path');
 const { templateString } = require('../utils/StringUtils');
 const User = require('../models/user.model.js');
 var refreshTokens = [];
+const randomString = require('node-uuid');
 
 outhRegister.post('/verifyOauthToken', async (req, res, next) => {
   const idToken = req.body.accessToken;
   const columnName = req.body.columnName;
-  const reqBody = {
-    firstName : req.body.firstName===undefined?'':req.body.firstName,
-     lastName:req.body.lastName===undefined?'':req.body.lastName,
-     login: req.body.login===undefined?'':req.body.login,
-      password= req.body.password===undefined?'':req.body.password,
-     authId: null,
-     middleName: req.body.middleName===undefined?'':req.body.middleName,
-     phonenumber: req.body.phonenumber===undefined?'':req.body.phonenumber,
-     isOAuth: req.body.isOauthRegistered===undefined?'':req.body.isOauthRegistered,
-     isPhoneVerified:req.body.isPhoneVerified===undefined?'':req.body.isPhoneVerified,
-
-  }
- verifyOauthToken(idToken, columnName,reqBody, res).catch(console.error);
+ verifyOauthToken(idToken, columnName,req, res).catch(console.error);
 
 });
 
-async function verifyOauthToken(token, columnName,reqBody, resObject) {
+async function verifyOauthToken(token, columnName,req, resObject) {
   fbadmin
     .auth()
     .verifyIdToken(token)
     .then(async decodedToken => {
       var requestColumnValue = '';
-      const phoneNumber = decodedToken.phone_number;
-      const uid = decodedToken.uid;
-      const email = decodedToken.email;
+      let phoneNumber;
+      const uuid = decodedToken.uid;
+      let email;
       let payload;
-
+      let firstName;
+      let isOauthRegistered;
+      let isPhoneVerified;
       if (columnName.toLowerCase() == 'phonenumber') {
         // requestColumnValue = '9821784084';
-        requestColumnValue = phoneNumber
+        email = req.body.login===undefined?null:req.body.login;
+        firstName = req.body.firstName===undefined?null:req.body.firstName;
+        requestColumnValue = phoneNumber;
         payload = phoneNumber;
+        isOauthRegistered = 0;
+        isPhoneVerified = 1;
+        phoneNumber = decodedToken.phone_number.substring(3);
       } else {
         requestColumnValue = email;
         columnName='login';
+        firstName = decodedToken.name;
         payload = email;
+        isOauthRegistered = 1;
+        isPhoneVerified = 0;
+        email = decodedToken.email;
       }
       checkUserExist(columnName, requestColumnValue,(err,isUserExist)=>{
         if(err){
           return resObject.status(500).send({ errorCode: 500, errorMessage: err });
         }
         console.log(isUserExist);
-        if(isUserExist){
+        if(isUserExist==='true'){
          const responseData = generateToken(payload);
+         responseData['uuid'] = uuid;
          resObject.status(200).send(responseData);
         }else{
-          createUser(reqBody.firstName,reqBody.lastName,reqBody.login,reqBody.password,reqBody.middleName,uuid,reqBody.phonenumber,reqBody.isOauthRegistered,reqBody.isPhoneVerified);
-          const responseData = generateToken(payload);
+          createUser(firstName,req.body.lastName,email,req.body.middleName,uuid,phoneNumber,isOauthRegistered,isPhoneVerified);
+          const responseData = generateToken();
+          responseData['uuid'] = uuid;
           resObject.status(200).send(responseData);
         }
 
@@ -125,20 +127,20 @@ function generateToken(payload){
   }
 }
 
-function createUser(firstName,lastName,login,password,middleName,uuid,phonenumber,isOauthRegistered,isPhoneVerified,result){
+function createUser(firstName,lastName,login,middleName,uuid,phonenumber,isOauthRegistered,isPhoneVerified,result){
   const user = new User({
-    firstName: firstName,
-    lastName: lastName,
-    login: login,
+    firstName:  firstName===undefined?null:firstName,
+    lastName:   lastName===undefined?null:lastName,
+    login:   login===undefined?null:login,
     isActive: 1,
     role: 1,
-    password: password,
+    password:randomString.v1(),
     authId: null,
-    middleName: middleName,
-    uuid: uuid,
-    phonenumber: phonenumber,
-    isOAuth: isOauthRegistered,
-    isPhoneVerified:isPhoneVerified
+    middleName:   middleName===undefined?null:middleName,
+    uuid: uuid===undefined?null:uuid,
+    phonenumber:   phonenumber===undefined?null:phonenumber,
+    isOAuth:   isOauthRegistered,
+    isPhoneVerified:  isPhoneVerified
   });
   User.create(user, (err, data) => {
     if (err) {
