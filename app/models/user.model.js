@@ -372,9 +372,9 @@ User.refreshToken = function (user, result) {
     return result({ message: 'Refresh token cannot be empty.', status: 401, isSuccess: false });
   }
 
-  if (!refreshTokens.includes(token)) {
-    return result({ message: 'Refresh Token Invalid.', status: 403, isSuccess: false });
-  }
+ // if (!refreshTokens.includes(token)) {
+ //   return result({ message: 'Refresh Token Invalid.', status: 403, isSuccess: false });
+ // }
 
   jwt.verify(token, refreshTokenSecret, (err, res) => {
     if (err) {

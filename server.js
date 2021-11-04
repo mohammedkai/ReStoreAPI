@@ -32,7 +32,7 @@ const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
 const outhregistercontroller = require('./app/controllers/outhregister.controller.js');
-const isLocal = true;
+const isLocal = false;
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', uncaughtExc => {
   logger.error('Uncaught Excpetion', { message: uncaughtExc.message, stack: uncaughtExc.stack });
@@ -197,4 +197,4 @@ const setupServer = isClusterRequired => {
     setUpExpress();
   }
 };
-setupServer(false);
+setupServer(true);
