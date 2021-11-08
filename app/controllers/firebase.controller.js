@@ -109,6 +109,60 @@ app.post('/notification/multiuser', (req, res, next) => {
 });
 
 // Send Notification to All Devices
+app.post('/notification/orderupdatenotification', (req, res, next) => {
+  // The topic name can be optionally prefixed with "/topics/".
+  const topicName = req.body.channelId;
+  const message = {
+    notification: {
+      title: req.body.title,
+      body: req.body.messagebody,
+    },
+    android: {
+      notification: {
+        icon: 'https://media.giphy.com/media/l0Ex3vQtX5VX2YtAQ/source.gif',
+        color: '#7e55c3',
+        priority: 'high',
+      },
+    },
+    topic: topicName,
+    data: {
+      orderId: req.body.orderId,
+      pageId: req.body.pageId,
+      userId: req.body.userId,
+      click_action : "message"
+    },
+    apns: {
+      headers: {
+        'apns-priority': '5',
+      },
+      payload: {
+        aps: {
+          category: 'NEW_MESSAGE_CATEGORY',
+        },
+      },
+    },
+    webpush: {
+      headers: {
+        TTL: '86400',
+      },
+    },
+  };
+  // Send a message to devices subscribed to the provided topic.
+  admin
+    .messaging()
+    .send(message)
+    .then(response => {
+      // Response is a message ID string.
+      res.status(200).send(`${response}Notification sent successfully`);
+    })
+    .catch(error => {
+      console.log('Error sending message:', error);
+      res.status(201).send(`Error sending message${error}`);
+    });
+});
+
+
+// Send Notification to All Devices
 app.post('/notification/notifytopics', (req, res, next) => {
   // The topic name can be optionally prefixed with "/topics/".
   const topicName = 'general';

@@ -20,6 +20,7 @@ const userscontroller = require('./app/controllers/users.controller');
 const sellercontroller = require('./app/controllers/seller.controller');
 const appdatacontroller = require('./app/controllers/appdata.controller');
 const productrequestcontroller = require('./app/controllers/productrequest.controller');
+const supportcontroller = require('./app/controllers/support.controller');
 const ip = require('ip');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -32,7 +33,7 @@ const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
 const outhregistercontroller = require('./app/controllers/outhregister.controller.js');
-const isLocal = false;
+const isLocal = true;
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', uncaughtExc => {
   logger.error('Uncaught Excpetion', { message: uncaughtExc.message, stack: uncaughtExc.stack });
@@ -146,6 +147,7 @@ const setUpExpress = () => {
   app.use('/apps', appdatacontroller);
   app.use('/request', productrequestcontroller);
   app.use('/oauthregister', outhregistercontroller);
+  app.use('/support', supportcontroller);
 
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
@@ -197,4 +199,4 @@ const setupServer = isClusterRequired => {
     setUpExpress();
   }
 };
-setupServer(true);
+setupServer(false);
