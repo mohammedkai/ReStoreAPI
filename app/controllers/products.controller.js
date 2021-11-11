@@ -436,4 +436,22 @@ productExpress.post('/getProductDetailsByIdRef', async (req, res, next) => {
   }
 });
 
+
+productExpress.get('/getSubCategoryWithProductCount/:categoryId', async (req, res, next) => {
+  const catId = req.params.categoryId;
+  const query = 'BEGIN sp_get_subcat_v2(:categoryid, :ref_cur_0); END;';
+  const binds = {
+    categoryid: catId,
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
+  try {
+    const subcatList = await dbSvc.simpleExecute(query, binds, 1, 'default');
+    res.status(200).send(subcatList.ref_cur_0[0]);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+
+
 module.exports = productExpress;

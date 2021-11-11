@@ -37,4 +37,26 @@ appDataExpress.get('/getFaqList', async (req, res, next) => {
   }
 });
 
+appDataExpress.get('/getDashboardFlyers', async (req, res, next) => {
+  var flyerList = [
+    {
+      flyerId: '1',
+      flyerImageId: 'https://images.financialexpress.com/2020/01/1-75.jpg',
+    },
+    {
+      flyerId: '2',
+      flyerImageId: 'https://resize.indiatvnews.com/en/resize/newbucket/715_-/2020/01/real-me-new-year-sale-1578039133.jpg',
+    },
+    {
+      flyerId: '3',
+      flyerImageId: 'https://images.moneycontrol.com/static-mcnews/2019/10/Realme-Offers-770x433.jpg',
+    },
+    {
+      flyerId: '4',
+      flyerImageId: '',
+    },
+  ];
+  res.status(200).send({ isSuccess: true, flyerList: flyerList });
+});
+
 module.exports = appDataExpress;

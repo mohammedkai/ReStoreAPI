@@ -190,6 +190,48 @@ orderExpress.post('/getOrderListByUserId', async (req, res, next) => {
   }
 });
 
+orderExpress.post('/getOrderListByUserIdByOrderId', async (req, res, next) => {
+  const query =
+    'CALL sp_get_order_details_by_order_id_by_user(:users_id,:users_order_id,:jsonstring)';
+  const orderdetaiListBind = {
+    users_id: req.body.UserId,
+    users_order_id: req.body.OrderId,
+    jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100000 },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        var images = await initAzureBlob();
+        const result = await connection.execute(query, orderdetaiListBind, options);
+        var parseObject = JSON.parse(result.outBinds.jsonstring);
+        parseObject.UsersOrderList.forEach(orderdetail => {
+          orderdetail.OrderItemList.forEach(orderitem => {
+            var prodImage = images.find(x => x.metadata.ProductKey == orderitem.ProductImageId);
+            orderitem['ProductImageUrl'] =
+              'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+              prodImage.name;
+          });
+        });
+        parseObject['isSuccess'] = true;
+        res.status(200).send(parseObject);
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message, isSuccess: false });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err.message });
+  }
+});
+
 async function initAzureBlob() {
   const account = process.env.ACCOUNT_NAME || '';
   const accountKey = process.env.ACCOUNT_KEY || '';
