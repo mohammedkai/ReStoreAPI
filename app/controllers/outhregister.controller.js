@@ -39,20 +39,20 @@ async function verifyOauthToken(token, columnName, req, resObject) {
       if (columnName.toLowerCase() == 'phonenumber') {
         // requestColumnValue = '9821784084';
         email = req.body.login === undefined ? null : req.body.login;
-        firstName = req.body.firstName === undefined ? null : req.body.FirstName;
-        requestColumnValue = phoneNumber;
-        payload = phoneNumber;
+        firstName = req.body.FirstName === undefined ? null : req.body.FirstName;
         isOauthRegistered = 0;
         isPhoneVerified = 1;
         phoneNumber = decodedToken.phone_number.substring(3);
+        requestColumnValue = phoneNumber;
+        payload = phoneNumber;
       } else {
-        requestColumnValue = email;
         columnName = 'login';
         firstName = decodedToken.name;
-        payload = email;
         isOauthRegistered = 1;
         isPhoneVerified = 0;
         email = decodedToken.email;
+        requestColumnValue = email;
+        payload = email;
       }
       checkUserExist(columnName, requestColumnValue, (err, isUserExist) => {
         if (err) {
