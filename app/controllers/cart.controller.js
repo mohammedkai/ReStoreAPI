@@ -142,7 +142,7 @@ cartExpress.post('/getCartItems', async (req, res, next) => {
       allProducts.ref_cur_0[0].forEach((cartpros)=>{
         const imageresult = images.filter(image => image.metadata.ProductKey == cartpros.IMAGE_ID);
         cartpros["productImageUrl"] = [] ;
-        cartpros["productImageUrl"].push('https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + imageresult[0].name);
+        cartpros["productImageUrl"].push('https://restorestoragev1.blob.core.windows.net/productimagesthumbnail/' + imageresult[0].name);
         cartProductList.push(cartpros);
       });
       res.status(200).send({ cartProducts: cartProductList, isSuccess : true });
@@ -179,7 +179,7 @@ cartExpress.post('/getCartItemsV2', async (req, res, next) => {
                     parseObject["cartProduct"].forEach((product) => {
                         const imageresult = images.filter(image => image.metadata.ProductKey == product.IMAGE_ID);
                         product["productImageUrl"] = [];
-                        product["productImageUrl"].push('https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + imageresult[0].name);
+                        product["productImageUrl"].push('https://restorestoragev1.blob.core.windows.net/productimagesthumbnail/' + imageresult[0].name);
                         productwithImage.push(product);
                     });
                 }

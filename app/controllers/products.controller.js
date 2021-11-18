@@ -103,7 +103,7 @@ productExpress.get('/getProductDetailsById/:prodId', async (req, res, next) => {
         images.forEach(element => {
           if (element.metadata.ProductKey == productDetails.ref_cur_0[0][0].IMAGE_ID) {
             productImageUrl.push(
-              'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' + element.name
+              'https://restorestoragev1.blob.core.windows.net/productsresizedimages/' + element.name
             );
           }
         });
@@ -140,7 +140,7 @@ productExpress.get('/getAllProductBySubcategory/:subCategoryId', async (req, res
       productimage.forEach(imagedetail => {
         if (imagedetail.metadata.ProductKey == element.IMAGE_ID) {
           productImageUrl.push(
-            'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+            'https://restorestoragev1.blob.core.windows.net/productimagesthumbnail/' +
               imagedetail.name
           );
         }
@@ -305,7 +305,7 @@ productExpress.get('/getMyWishList/:userId', async (req, res, next) => {
       productimage.forEach(imagedetail => {
         if (imagedetail.metadata.ProductKey == element.IMAGE_ID) {
           productImageUrl.push(
-            'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+            'https://restorestoragev1.blob.core.windows.net/productimagesthumbnail/' +
               imagedetail.name
           );
         }
@@ -408,7 +408,7 @@ productExpress.post('/getProductDetailsByIdRef', async (req, res, next) => {
           images.forEach(element => {
             if (element.metadata.ProductKey == parseObject.productDetails[0].ProductImageId) {
               productImageUrl.push(
-                'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+                'https://restorestoragev1.blob.core.windows.net/productsresizedimages/' +
                   element.name
               );
             }
