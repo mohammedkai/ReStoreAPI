@@ -167,7 +167,7 @@ orderExpress.post('/getOrderListByUserId', async (req, res, next) => {
           orderdetail.OrderItemList.forEach(orderitem => {
             var prodImage = images.find(x => x.metadata.ProductKey == orderitem.ProductImageId);
             orderitem['ProductImageUrl'] =
-              'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+              'https://restorestoragev1.blob.core.windows.net/productimagesthumbnail/' +
               prodImage.name;
           });
         });
@@ -209,7 +209,7 @@ orderExpress.post('/getOrderListByUserIdByOrderId', async (req, res, next) => {
           orderdetail.OrderItemList.forEach(orderitem => {
             var prodImage = images.find(x => x.metadata.ProductKey == orderitem.ProductImageId);
             orderitem['ProductImageUrl'] =
-              'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+              'https://restorestoragev1.blob.core.windows.net/productimagesthumbnail/' +
               prodImage.name;
           });
         });

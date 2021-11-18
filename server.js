@@ -137,17 +137,17 @@ const setUpExpress = () => {
   app.use('/users', userscontroller);
   app.use('/clustering', worker);
   app.use('/fireBase', fireBase);
-  app.use('/category', authJwt, category);
-  app.use('/products', authJwt, products);
-  app.use('/carts', authJwt, cart);
-  app.use('/addresses', authJwt, useraddress);
-  app.use('/orders', authJwt, userorder);
-  app.use('/payments', authJwt, payments);
-  app.use('/sellers', authJwt, sellercontroller);
-  app.use('/apps',authJwt ,appdatacontroller);
-  app.use('/request', authJwt, productrequestcontroller);
+  app.use('/category', category);
+  app.use('/products', products);
+  app.use('/carts', cart);
+  app.use('/addresses', useraddress);
+  app.use('/orders', userorder);
+  app.use('/payments', payments);
+  app.use('/sellers', sellercontroller);
+  app.use('/apps' ,appdatacontroller);
+  app.use('/request', productrequestcontroller);
   app.use('/oauthregister', outhregistercontroller);
-  app.use('/support', authJwt, supportcontroller);
+  app.use('/support', supportcontroller);
 
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
