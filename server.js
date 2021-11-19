@@ -33,6 +33,7 @@ const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
 const outhregistercontroller = require('./app/controllers/outhregister.controller.js');
+const basicAuth = require('express-basic-auth');
 const isLocal = false;
 // catch unexpected exception becuase of which server get crashed
 process.on('uncaughtException', uncaughtExc => {
@@ -130,6 +131,15 @@ const setUpExpress = () => {
   // setting up swagger
   const specs = swaggerJsdoc(swaggerSetup);
   app.use('/docs', swaggerUi.serve);
+  app.get(
+    '/docs',
+    basicAuth({
+      users: { admin: process.env.SWAGGERAUTHKEY },
+      challenge: true,
+      realm: 'Imb4T3st4pp'
+    }),
+    swaggerUi.setup(specs, { explorer: true })
+  );
   app.get('/docs', swaggerUi.setup(specs, { explorer: true }));
 
   // adding routes

@@ -126,3 +126,5 @@ mywallet/sqlnet.ora
 mywallet/tnsnames.ora
 mywallet/truststore.jks
 .env
+package-lock.json
+package-lock.json
