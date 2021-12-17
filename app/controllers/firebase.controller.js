@@ -129,7 +129,7 @@ app.post('/notification/orderupdatenotification', (req, res, next) => {
       orderId: req.body.orderId,
       pageId: req.body.pageId,
       userId: req.body.userId,
-      click_action : "message"
+      click_action: 'message',
     },
     apns: {
       headers: {
@@ -160,7 +160,6 @@ app.post('/notification/orderupdatenotification', (req, res, next) => {
       res.status(201).send(`Error sending message${error}`);
     });
 });
-
 
 // Send Notification to All Devices
 app.post('/notification/notifytopics', (req, res, next) => {
@@ -230,5 +229,39 @@ function fireNotification(messagee, res) {
       res.status(201).send(`Notification was not sent successfully${error}`);
     });
 }
+
+app.post('/notification/categorynotification', (req, res, next) => {
+  const topicName2 = req.body.topicsName;
+  const message2 = {
+    data: {
+      title: req.body.title,
+      body: req.body.messagebody,
+      click_action: req.body.actionname,
+      priority: 'high',
+      large_icon: 'ic_launcher',
+      orderId: req.body.orderId,
+      pageId: req.body.pageId,
+      userId: req.body.userId,
+    },
+    condition: `'${topicName2}' in topics`,
+    apns: {
+      headers: {
+        'apns-priority': '10',
+      },
+    },
+  };
+  admin
+    .messaging()
+    .send(message2)
+    .then(response => {
+      // Response is a message ID string.
+      res.status(200).send(`${response}Notification sent successfully`);
+    })
+    .catch(error => {
+      console.log('Error sending message:', error);
+      res.status(201).send(`Error sending message${error}`);
+    });
+});
+
 module.exports.fireNotification = fireNotification;
 module.exports = app;

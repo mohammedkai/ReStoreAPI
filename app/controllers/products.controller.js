@@ -229,8 +229,11 @@ productExpress.post('/listnewproduct', async (req, res, next) => {
   var deliveryCharge = req.body.deliveryCharge;
   var condition = req.body.conditionID;
   var sellerId = req.body.sellerID;
+  var warrantyType = req.body.warrantyTypeId;
+  var isInvoiceAvailable = req.body.isInvoiceAvailable;
+
   const listProductQuery =
-    'CALL sp_add_new_product(:discountedprice, :brandid, :qty, :categoryid,:subcategoryid,:imageid,:productname,:manufacturerid,:warrantyinmonths,:modelno,:prodesc,:isdelchargeapplication,:deliverycharge,:conditionid,:sellersid,:productid)';
+    'CALL sp_add_new_product(:discountedprice, :brandid, :qty, :categoryid,:subcategoryid,:imageid,:productname,:manufacturerid,:warrantyinmonths,:modelno,:prodesc,:isdelchargeapplication,:deliverycharge,:conditionid,:sellersid,:warrantytype,:invoiceavailable,:productid)';
 
   const productbindings = {
     discountedprice: productPrice,
@@ -248,6 +251,8 @@ productExpress.post('/listnewproduct', async (req, res, next) => {
     deliverycharge: deliveryCharge,
     conditionid: condition,
     sellersid: sellerId,
+    warrantytype : warrantyType,
+    invoiceavailable : isInvoiceAvailable,
     productid: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
   };
   const options = {};
@@ -277,8 +282,8 @@ productExpress.post('/addProductSpecs', async (req, res, next) => {
       productSpecList.forEach(async specItem => {
         const productbindings = {
           productid: specItem.productId,
-          specid: specItem.spec_Id,
-          specvalue: specItem.specValue,
+          specid: specItem.SPEC_ID,
+          specvalue: specItem.SpecValue,
         };
         const result = await connection.execute(addspecsquery, productbindings, options);
       });
