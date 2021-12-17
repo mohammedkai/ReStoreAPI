@@ -95,7 +95,7 @@ sellerExpress.get('/getsellerlistings/:sellerId', async (req, res, next) => {
         productimage.forEach(imagedetail => {
           if (imagedetail.metadata.ProductKey == element.ImageUrl) {
             productImageUrl.push(
-              'https://restorestoragev1.blob.core.windows.net/restoreimagecontainer/' +
+              'https://restorestoragev1.blob.core.windows.net/productimagesthumbnail/' +
                 imagedetail.name
             );
           }
