@@ -94,14 +94,15 @@ const setupWorkerProcesses = () => {
  */
 
 const setUpExpress = () => {
+  app.use(express.static(path.join(__dirname+'/app/templates')));
   app.use(bodyParser.json());
-
+  
   // parse requests of content-type: application/x-www-form-urlencoded
   app.use(bodyParser.urlencoded({ extended: true }));
-
+  
   //cors
   app.use(cors());
-
+  
   app.use(httpContext.middleware);
 
   // simple route
@@ -131,6 +132,8 @@ const setUpExpress = () => {
   const specs = swaggerJsdoc(swaggerSetup);
   app.use('/docs', swaggerUi.serve);
   app.get('/docs', swaggerUi.setup(specs, { explorer: true }));
+
+  app.use('/static', express.static(path.join(__dirname+'/app/templates')));
 
   // adding routes
   app.use('/user', user);
