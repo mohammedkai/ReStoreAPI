@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Email Verification</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="../css/emailVerify.css">
+
+
+</head>
+
+<body>
+	
+	<div class="gry-box">
+		<div class="white-box" style="display:$[DISPLAY_SUCCESS];">
+			
+		<p class=" p1-txt">Account Activated</p>
+		<img src="../images/emailVerify.jpg" class="img1">
+		<p class=" p2-txt">Hello $[EMAILID],</p>
+		<p class="para p3-txt">Thank you, your email has been verified. Your account is now active.<br>
+		Please use the link below to login to your account.</p>
+
+
+		 <button  onclick="window.location.href = 'https://www.w3schools.com/'" class="btn" id="btn">Login To Your Account</button> 
+
+		<p class="para p4-txt">Thank You For Choosing ReStore.</p>
+
+		</div>
+		
+		<div class="white-box" style="display:$[DISPLAY_FAILURE];">
+			
+		<p class=" p1-txt">Invalid Token</p>
+		<img src="../images/emailVerify.jpg" class="img1">
+		<p class=" p2-txt">Hello $[EMAILID],</p>
+		<p class="para p3-txt" style="margin-left: 234px;">Token expired, please contact support.</p>
+
+
+		<p class="para p4-txt">Thank You For Choosing ReStore.</p>
+
+		</div>
+
+		<p class="p5-txt">	&copy; ReStore, Inc. All rights reserved.<br>
+		123 Incredible street, SomeTown, OR, 87466 US, (123) 456-7890</p>
+<div class="navigation">
+		<a href="#"> <i class="icon fa fa-linkedin-square"></i> </a>
+        <a href="#"> <i class="icon fa fa-twitter"></i> </a>
+        <a href="#"> <i class="icon fa fa-rss"></i> </a>
+</div>
+		<p class="p6-txt">You recived this email because you signed up for ReStore</p>
+
+        <a class="p7-txt" href="#">unsubscribe</a>
+
+
+
+	</div>
+</body>
+
+</html>

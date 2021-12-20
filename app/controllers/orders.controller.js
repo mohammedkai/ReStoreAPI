@@ -6,6 +6,11 @@ const dbSvc = require('../config/db_svc.js');
 const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
 const firebaseInstance = require('./firebase.controller');
 const orderExpress = express();
+const { templateString } = require('../utils/StringUtils');
+const fs = require('fs');
+const path = require('path');
+const sendEmail = require('../utils/emailHelper.js');
+
 
 orderExpress.get('/getOrderedItems/:orderId', async (req, res, next) => {
   await dbSvc.initialize();
@@ -231,6 +236,85 @@ orderExpress.post('/getOrderListByUserIdByOrderId', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: err.message });
   }
 });
+
+
+
+
+orderExpress.post('/emailOrderPlaced', async (req, res, next) => {
+  try {
+    const email = req.body.login;
+    const items = req.body.items;
+    const elements=[];
+      items.forEach((item) => {
+       elements.push("<tr>")
+       elements.push("<td width=\"75%\" align=\"left\" style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;\">");
+       elements.push(item.name);
+       elements.push("</td>");
+       elements.push("<td width=\"25%\" align=\"left\" style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;\">");
+       elements.push(item.price);
+       elements.push("</td>");
+       elements.push("</tr>");
+      });
+
+    const replacement = {
+      Order_Id: req.body.orderId,
+      Total:req.body.orderTotal,
+      Shipping_price:req.body.shipping,
+      GST:req.body.gst,
+      Item_List:elements.join(" ")
+    };
+    let subject = 'Order Placed';
+    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'order_placed.html');
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+    let html = templateString(htmlContent, replacement);
+    const emailResponse = await sendEmail({ to: email, subject, html });
+
+    res.status(200).send(emailResponse);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+
+orderExpress.post('/emailOrderShipped', async (req, res, next) => {
+  try {
+    const email = req.body.login;
+
+    const replacement = {
+     NAME:email
+    };
+    let subject = 'Order Shipped';
+    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'orderShipped.html');
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+    let html = templateString(htmlContent, replacement);
+    const emailResponse = await sendEmail({ to: email, subject, html });
+
+    res.status(200).send(emailResponse);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+orderExpress.post('/emailOrderCancelled', async (req, res, next) => {
+  try {
+    const email = req.body.login;
+
+    const replacement = {
+     NAME:email
+    };
+    let subject = 'Order Cancelled';
+    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'orderCancelled.html');
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+    let html = templateString(htmlContent, replacement);
+    const emailResponse = await sendEmail({ to: email, subject, html });
+
+    res.status(200).send(emailResponse);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
+
 
 async function initAzureBlob() {
   const account = process.env.ACCOUNT_NAME || '';

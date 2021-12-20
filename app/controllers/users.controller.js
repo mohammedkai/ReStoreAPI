@@ -325,7 +325,7 @@ userExpress.post('/sendVerifyEmail', async (req, res, next) => {
       VERIFICATION_LINK: `${process.env.AZURE_API_URL}/users/verifyEmail?token=${accessToken}`,
     };
     let subject = 'Please verify your email for ReStore';
-    let htmlPath = path.join(__dirname, '..', 'templates', 'verifyTemplate.html');
+    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'verifyTemplate.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
@@ -347,12 +347,14 @@ userExpress.get('/verifyEmail', async (req, res, next) => {
     let replacement = {
       MESSAGE: `User verified successfully. Please login to the application`,
     };
-    let htmlPath = path.join(__dirname, '..', 'templates', 'emailVerified.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages','emailVerified.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
     jwt.verify(token, jwtKey, (err, response) => {
       if (err) {
-        replacement['MESSAGE'] = 'Invalid Token';
+        replacement['DISPLAY_SUCCESS'] = 'none';
+        replacement['DISPLAY_FAILURE'] = 'block';
+        replacement['EMAILID'] = response.username;
 
         return res.status(200).send(templateString(htmlContent, replacement));
       }
@@ -362,6 +364,9 @@ userExpress.get('/verifyEmail', async (req, res, next) => {
       db.doConnect(async (err, connection) => {
         try {
           const result = await connection.execute(query, update_metadata_binds, options);
+          replacement['DISPLAY_SUCCESS'] = 'block';
+          replacement['DISPLAY_FAILURE'] = 'none';
+          replacement['EMAILID'] = response.username;
           return res.status(200).send(templateString(htmlContent, replacement));
         } catch (err) {
           res.status(500).send({ errorCode: 500, errorMessage: err.message });
@@ -395,7 +400,7 @@ userExpress.post('/resetPasswordEmail', async (req, res, next) => {
       // RESET_LINK: `http://localhost:8080/users/openNewPassword?token=${accessToken}&login=${email}`,
     };
     let subject = 'ReStore: Reset your password';
-    let htmlPath = path.join(__dirname, '..', 'templates', 'resetPassword.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages','resetPassword.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
@@ -459,7 +464,7 @@ userExpress.get('/openNewPassword', async (req, res, next) => {
           if (err) {
             return res.status(200).send({ isSuccess: false, message: 'Invalid Token' });
           }
-          let htmlPath = path.join(__dirname, '..', 'templates', 'changePassword.html');
+          let htmlPath = path.join(__dirname, '..', 'templates', 'pages','changePassword.html');
           let htmlContent = fs.readFileSync(htmlPath, 'utf8');
           let html = templateString(htmlContent, replacement);
           res.status(200).send(html);

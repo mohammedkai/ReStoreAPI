@@ -39,6 +39,7 @@
     "firebase": "^7.19.0",
     "firebase-admin": "^9.1.1",
     "fs": "0.0.1-security",
+    "html": "^1.0.0",
     "http": "0.0.1-security",
     "https": "^1.0.0",
     "ip": "^1.1.5",
