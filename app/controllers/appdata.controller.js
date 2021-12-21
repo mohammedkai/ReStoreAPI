@@ -6,6 +6,7 @@ const connection = require('../dbconnections/db.js');
 const dbSvc = require('../config/db_svc.js');
 const appDataExpress = express();
 appDataExpress.use(bodyparser.json());
+const axios = require('axios');
 
 appDataExpress.get('/getFaqList', async (req, res, next) => {
   const faqlistquery = 'CALL sp_getall_faqs(:jsonstring)';
@@ -60,17 +61,16 @@ appDataExpress.get('/getDashboardFlyers', async (req, res, next) => {
 });
 
 appDataExpress.get('/appversion', async (req, res, next) => {
-    ismandate = false;
-    if(process.env.ISAPPUPDATEMANDATE == 1)
-    {
-        ismandate = true;
-    }
-  res
-    .status(200)
-    .send({
-      isSuccess: true,
-      appVersion: process.env.NEWMOBILEVERSION,
-      isAppMandate: ismandate,
+  axios
+    .get('https://imagefunctions20211106192815.azurewebsites.net/api/app/getversion')
+    .then(function (response) {
+      // handle success
+      res.status(200).send(response.data);
+      console.log(response);
+    })
+    .catch(function (error) {
+      // handle error
+      res.status(200).send({ isSuccess: false });
     });
 });
 
