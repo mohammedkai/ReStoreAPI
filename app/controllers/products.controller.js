@@ -155,6 +155,36 @@ productExpress.get('/getAllProductBySubcategory/:subCategoryId', async (req, res
   }
 });
 
+productExpress.get('/getTopProductList', async (req, res, next) => {
+  await dbSvc.initialize();
+  const query = 'BEGIN sp_get_top_products(:ref_cur_0); END;';
+  const binds = {
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
+  try {
+    const productList = await dbSvc.simpleExecute(query, binds, 1, 'default');
+    let productimage = await initAzureBlob();
+    let productImageUrl = [];
+    let productsList = [];
+    productList.ref_cur_0[0].forEach(element => {
+      productimage.forEach(imagedetail => {
+        if (imagedetail.metadata.ProductKey == element.IMAGE_ID) {
+          productImageUrl.push(
+            'https://restorestoragev1.blob.core.windows.net/productsresizedimages/' +
+              imagedetail.name
+          );
+        }
+        element['productImageUrl'] = productImageUrl;
+      });
+      productsList.push(element);
+      productImageUrl = [];
+    });
+    res.status(200).send(productsList);
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err });
+  }
+});
+
 productExpress.get('/getAllProductByCategoryId/:categoryId', async (req, res, next) => {
   const catid = req.params.categoryId;
   //await dbSvc.initialize();
@@ -251,8 +281,8 @@ productExpress.post('/listnewproduct', async (req, res, next) => {
     deliverycharge: deliveryCharge,
     conditionid: condition,
     sellersid: sellerId,
-    warrantytype : warrantyType,
-    invoiceavailable : isInvoiceAvailable,
+    warrantytype: warrantyType,
+    invoiceavailable: isInvoiceAvailable,
     productid: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
   };
   const options = {};
@@ -394,11 +424,12 @@ productExpress.post('/search', async (req, res, next) => {
 });
 
 productExpress.post('/getProductDetailsByIdRef', async (req, res, next) => {
-  const query = 'CALL sp_get_product_detail_by_ref(:products_id,:productref,:users_id,:finaljsonstring)';
+  const query =
+    'CALL sp_get_product_detail_by_ref(:products_id,:productref,:users_id,:finaljsonstring)';
   const productDetailBind = {
     products_id: req.body.ProductId,
     productref: req.body.ReferenceId,
-    users_id : req.body.UserId,
+    users_id: req.body.UserId,
     finaljsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
   };
   const options = { autoCommit: true };
@@ -441,7 +472,6 @@ productExpress.post('/getProductDetailsByIdRef', async (req, res, next) => {
   }
 });
 
-
 productExpress.get('/getSubCategoryWithProductCount/:categoryId', async (req, res, next) => {
   const catId = req.params.categoryId;
   const query = 'BEGIN sp_get_subcat_v2(:categoryid, :ref_cur_0); END;';
@@ -456,7 +486,5 @@ productExpress.get('/getSubCategoryWithProductCount/:categoryId', async (req, re
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
-
-
 
 module.exports = productExpress;
