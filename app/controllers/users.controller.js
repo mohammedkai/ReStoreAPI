@@ -486,4 +486,87 @@ userExpress.get('/openNewPassword', async (req, res, next) => {
   }
 });
 
+userExpress.get('/getAdvertiseMaster', async (req, res, next) => {
+  const query = 'CALL sp_get_advertise_master(:ref_cur_0)';
+  const email = req.query.login;
+  const advertiseBind = {
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  try {
+    const advertiseMaster = await dbSvc.simpleExecute(query, advertiseBind, 1, 'default');
+    if(advertiseMaster.ref_cur_0[0].length > 0)
+    {
+    res.status(200).send({ isSuccess: true, advertiseMasterList: advertiseMaster.ref_cur_0[0] });
+    }
+    else
+    {
+      res.status(200).send({ isSuccess: false, advertiseMasterList: [] });
+    }
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+userExpress.post('/updateUserAdvertise', async (req, res, next) => {
+  const query = 'CALL SP_UPDATE_USER_POINTS(:userId,:addId,:totalPoints)';
+  const userId = req.body.userId;
+  const addId = req.body.addId;
+  const options = { autoCommit: true };
+  const advertiseBind = {
+    userId:userId,
+    addId:addId,
+    totalPoints: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+  };
+  try {
+
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, advertiseBind, options);
+        return res.status(200).send({isSuccess: true,totalPoints:result.outBinds['totalPoints']});
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+    
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+
+userExpress.post('/getActiveAdsForUser', async (req, res, next) => {
+  const query = 'CALL SP_VERIFY_USER_ADVERTISE(:user_id,:ref_cur_0)';
+  const userId = req.body.userId;
+  const advertiseBind = {
+    user_id:userId,
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  try {
+    const activeAdvertises = await dbSvc.simpleExecute(query, advertiseBind, 1, 'default');
+    if(activeAdvertises.ref_cur_0[0].length > 0)
+    {
+    res.status(200).send({ isSuccess: true, advertiseMasterList: activeAdvertises.ref_cur_0[0] });
+    }
+    else
+    {
+      res.status(200).send({ isSuccess: false, advertiseMasterList: [] });
+    }
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
 module.exports = userExpress;
