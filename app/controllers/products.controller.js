@@ -408,7 +408,8 @@ productExpress.post('/search', async (req, res, next) => {
         res.status(200).send(parseObject);
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
-      } finally {
+      } finally 
+      {
         if (connection) {
           try {
             await connection.close();

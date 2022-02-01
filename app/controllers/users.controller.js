@@ -544,9 +544,4 @@ userExpress.post('/updateUserAdvertise', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
 });
-
-
-
-
-
 module.exports = userExpress;

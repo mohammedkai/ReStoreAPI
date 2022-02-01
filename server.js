@@ -21,6 +21,7 @@ const sellercontroller = require('./app/controllers/seller.controller');
 const appdatacontroller = require('./app/controllers/appdata.controller');
 const productrequestcontroller = require('./app/controllers/productrequest.controller');
 const supportcontroller = require('./app/controllers/support.controller');
+const servicescontroller = require('./app/controllers/services.controller');
 const ip = require('ip');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -161,6 +162,7 @@ const setUpExpress = () => {
   app.use('/request', productrequestcontroller);
   app.use('/oauthregister', outhregistercontroller);
   app.use('/support', supportcontroller);
+  app.use('/service', servicescontroller);
 
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });

@@ -11,7 +11,6 @@ const fs = require('fs');
 const path = require('path');
 const sendEmail = require('../utils/emailHelper.js');
 
-
 orderExpress.get('/getOrderedItems/:orderId', async (req, res, next) => {
   await dbSvc.initialize();
   const query = 'CALL sp_get_ordereditems_by_order_id(:orderid,:ref_cur_0)';
@@ -161,6 +160,11 @@ orderExpress.post('/getOrderListByUserId', async (req, res, next) => {
     users_id: req.body.UserId,
     jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100000 },
   };
+  const seriveOrderQuery = 'BEGIN sp_get_order_service_list_by_user_id(:users_id,:ref_cur_0); END;';
+  const serviceOrderBind = {
+    users_id: req.body.UserId,
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
   const options = { autoCommit: true };
   try {
     db.doConnect(async (err, connection) => {
@@ -176,6 +180,13 @@ orderExpress.post('/getOrderListByUserId', async (req, res, next) => {
               prodImage.name;
           });
         });
+        const serviceOrderList = await dbSvc.simpleExecute(
+          seriveOrderQuery,
+          serviceOrderBind,
+          1,
+          'default'
+        );
+        parseObject['serviceOrderList'] = serviceOrderList.ref_cur_0[0];
         parseObject['isSuccess'] = true;
         res.status(200).send(parseObject);
       } catch (err) {
@@ -203,6 +214,7 @@ orderExpress.post('/getOrderListByUserIdByOrderId', async (req, res, next) => {
     users_order_id: req.body.OrderId,
     jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100000 },
   };
+
   const options = { autoCommit: true };
   try {
     db.doConnect(async (err, connection) => {
@@ -218,6 +230,7 @@ orderExpress.post('/getOrderListByUserIdByOrderId', async (req, res, next) => {
               prodImage.name;
           });
         });
+
         parseObject['isSuccess'] = true;
         res.status(200).send(parseObject);
       } catch (err) {
@@ -237,34 +250,49 @@ orderExpress.post('/getOrderListByUserIdByOrderId', async (req, res, next) => {
   }
 });
 
-
-
+orderExpress.post('/getproductandserviceorders', async (req, res, next) => {
+  const query = 'BEGIN sp_get_order_service_list_by_user_id(:users_id,:ref_cur_0); END;';
+  const ordersbind = {
+    users_id: req.body.UserId,
+    ref_cur_0: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+  };
+  try {
+    const serviceOrderList = await dbSvc.simpleExecute(query, ordersbind, 1, 'default');
+    res.status(200).send({ isSuccess: true, serviceOrderList: serviceOrderList.ref_cur_0[0] });
+  } catch (error) {
+    res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
 
 orderExpress.post('/emailOrderPlaced', async (req, res, next) => {
   try {
     const email = req.body.login;
     const items = req.body.items;
-    const elements=[];
-      items.forEach((item) => {
-       elements.push("<tr>")
-       elements.push("<td width=\"75%\" align=\"left\" style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;\">");
-       elements.push(item.name);
-       elements.push("</td>");
-       elements.push("<td width=\"25%\" align=\"left\" style=\"font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;\">");
-       elements.push(item.price);
-       elements.push("</td>");
-       elements.push("</tr>");
-      });
+    const elements = [];
+    items.forEach(item => {
+      elements.push('<tr>');
+      elements.push(
+        '<td width="75%" align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;">'
+      );
+      elements.push(item.name);
+      elements.push('</td>');
+      elements.push(
+        '<td width="25%" align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;">'
+      );
+      elements.push(item.price);
+      elements.push('</td>');
+      elements.push('</tr>');
+    });
 
     const replacement = {
       Order_Id: req.body.orderId,
-      Total:req.body.orderTotal,
-      Shipping_price:req.body.shipping,
-      GST:req.body.gst,
-      Item_List:elements.join(" ")
+      Total: req.body.orderTotal,
+      Shipping_price: req.body.shipping,
+      GST: req.body.gst,
+      Item_List: elements.join(' '),
     };
     let subject = 'Order Placed';
-    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'order_placed.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages', 'order_placed.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
@@ -275,16 +303,15 @@ orderExpress.post('/emailOrderPlaced', async (req, res, next) => {
   }
 });
 
-
 orderExpress.post('/emailOrderShipped', async (req, res, next) => {
   try {
     const email = req.body.login;
 
     const replacement = {
-     NAME:email
+      NAME: email,
     };
     let subject = 'Order Shipped';
-    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'orderShipped.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages', 'orderShipped.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
@@ -300,10 +327,10 @@ orderExpress.post('/emailOrderCancelled', async (req, res, next) => {
     const email = req.body.login;
 
     const replacement = {
-     NAME:email
+      NAME: email,
     };
     let subject = 'Order Cancelled';
-    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'orderCancelled.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages', 'orderCancelled.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
@@ -313,8 +340,6 @@ orderExpress.post('/emailOrderCancelled', async (req, res, next) => {
     res.status(500).send({ errorCode: 500, errorMessage: err });
   }
 });
-
-
 
 async function initAzureBlob() {
   const account = process.env.ACCOUNT_NAME || '';
