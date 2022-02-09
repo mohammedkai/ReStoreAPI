@@ -111,4 +111,106 @@ serviceExpress.post('/updateserviceorder', async (req, res, next) => {
   }
 });
 
+serviceExpress.post('/getserviceorderdetailbyorderid', async (req, res, next) => {
+  const query = 'CALL sp_get_service_order_details(:users_id,:serviceorderid,:jsonstring)';
+  const orderdetaiListBind = {
+    users_id: req.body.UserId,
+    serviceorderid: req.body.OrderId,
+    jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 100000 },
+  };
+
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, orderdetaiListBind, options);
+        var parseObject = JSON.parse(result.outBinds.jsonstring);
+        res.status(200).send(parseObject.UserServiceOrderDetails[0]);
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, errorMessage: err.message, isSuccess: false });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err.message });
+  }
+});
+
+serviceExpress.post('/updateserviceorderdetails', async (req, res, next) => {
+  const query =
+    'CALL sp_update_serviceorder_details_userid_orderid(:userid,:orderid,:operationid,:technicianid,:statuscode)';
+  const updateorderdetailbinds = {
+    userid: req.body.userId,
+    orderid: req.body.OrderId,
+    operationid: req.body.operationId,
+    technicianid: '',
+    statuscode: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, updateorderdetailbinds, options);
+        res.status(200).send({ statusCode: result.outBinds.statuscode });
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, isSuccess: false, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err.message });
+  }
+});
+
+serviceExpress.post('/updateserviceorderdatetime', async (req, res, next) => {
+  const query =
+    'CALL sp_update_date_time_userid_order_id(:userid,:orderid,:newdate,:newtimeslotid,:statuscode)';
+  const updatedatetimebind = {
+    userid: req.body.userId,
+    orderid: req.body.orderId,
+    newdate: req.body.preferredDate,
+    newtimeslotid: req.body.preferredTime,
+    statuscode: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+  };
+  const options = { autoCommit: true };
+  try {
+    db.doConnect(async (err, connection) => {
+      try {
+        const result = await connection.execute(query, updatedatetimebind, options);
+        res.status(200).send({ statusCode: result.outBinds.statuscode });
+      } catch (err) {
+        res.status(500).send({ errorCode: 500, isSuccess: false, errorMessage: err.message });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).send({ errorCode: 500, errorMessage: err.message });
+  }
+});
+
+serviceExpress.post('/getuserinvoice', async (req, res, next) => {
+  res.status(200).send({ isSuccess: false });
+});
+
 module.exports = serviceExpress;
