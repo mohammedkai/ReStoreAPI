@@ -79,8 +79,7 @@ async function verifyToken(token, resObject) {
         column_value: reuqestparam,
         ispresent: { dir: oracledb.BIND_OUT, type: oracledb.VARCHAR },
       };
-      try 
-      {
+      try {
         db.doConnect(async (err, connection) => {
           try {
             const result = await connection.execute(query, verfiyUserExistPara, options);
@@ -115,8 +114,7 @@ async function verifyToken(token, resObject) {
             }
           } catch (err) {
             resObject.status(500).send({ errorCode: 500, errorMessage: err });
-          } finally 
-          {
+          } finally {
             if (connection) {
               try {
                 await connection.close();
@@ -243,7 +241,7 @@ userExpress.post('/getUsersMetadata', async (req, res, next) => {
 
 userExpress.post('/updateUsersMetadata', async (req, res, next) => {
   const query =
-    'CALL sp_update_user_metadata(:user_id,:phone_no,:operation_id,:selected_address_id,:fullname,:emailid,:issuccess)';
+    'CALL sp_update_user_metadata(:user_id,:phone_no,:operation_id,:selected_address_id,:fullname,:emailid,:analyticsconsent,:issuccess)';
   const update_metadata_binds = {
     user_id: req.body.UserId,
     phone_no: req.body.PhoneNumber,
@@ -251,6 +249,7 @@ userExpress.post('/updateUsersMetadata', async (req, res, next) => {
     selected_address_id: req.body.SelectedAddressOrderId,
     fullname: req.body.FirstName,
     emailid: req.body.EmailAddress,
+    analyticsconsent: req.body.AnalyticsConsent,
     issuccess: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
   };
   const options = { autoCommit: true };
@@ -325,7 +324,7 @@ userExpress.post('/sendVerifyEmail', async (req, res, next) => {
       VERIFICATION_LINK: `${process.env.AZURE_API_URL}/users/verifyEmail?token=${accessToken}`,
     };
     let subject = 'Please verify your email for ReStore';
-    let htmlPath = path.join(__dirname, '..', 'templates','pages', 'verifyTemplate.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages', 'verifyTemplate.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
@@ -347,7 +346,7 @@ userExpress.get('/verifyEmail', async (req, res, next) => {
     let replacement = {
       MESSAGE: `User verified successfully. Please login to the application`,
     };
-    let htmlPath = path.join(__dirname, '..', 'templates', 'pages','emailVerified.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages', 'emailVerified.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
     jwt.verify(token, jwtKey, (err, response) => {
@@ -400,7 +399,7 @@ userExpress.post('/resetPasswordEmail', async (req, res, next) => {
       // RESET_LINK: `http://localhost:8080/users/openNewPassword?token=${accessToken}&login=${email}`,
     };
     let subject = 'ReStore: Reset your password';
-    let htmlPath = path.join(__dirname, '..', 'templates', 'pages','resetPassword.html');
+    let htmlPath = path.join(__dirname, '..', 'templates', 'pages', 'resetPassword.html');
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
     let html = templateString(htmlContent, replacement);
     const emailResponse = await sendEmail({ to: email, subject, html });
@@ -464,7 +463,7 @@ userExpress.get('/openNewPassword', async (req, res, next) => {
           if (err) {
             return res.status(200).send({ isSuccess: false, message: 'Invalid Token' });
           }
-          let htmlPath = path.join(__dirname, '..', 'templates', 'pages','changePassword.html');
+          let htmlPath = path.join(__dirname, '..', 'templates', 'pages', 'changePassword.html');
           let htmlContent = fs.readFileSync(htmlPath, 'utf8');
           let html = templateString(htmlContent, replacement);
           res.status(200).send(html);
@@ -488,19 +487,16 @@ userExpress.get('/openNewPassword', async (req, res, next) => {
 
 userExpress.post('/getActiveAdsForUser', async (req, res, next) => {
   const query = 'CALL SP_VERIFY_USER_ADVERTISE(:users_id,:ref_cur_0)';
-  const userId = req.body.userId;
+  const userId = req.body.UserId;
   const advertiseBind = {
-    users_id:userId,
+    users_id: userId,
     ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
   };
   try {
     const activeAdvertises = await dbSvc.simpleExecute(query, advertiseBind, 1, 'default');
-    if(activeAdvertises.ref_cur_0[0].length > 0)
-    {
-    res.status(200).send({ isSuccess: true, advertiseMasterList: activeAdvertises.ref_cur_0[0] });
-    }
-    else
-    {
+    if (activeAdvertises.ref_cur_0[0].length > 0) {
+      res.status(200).send({ isSuccess: true, advertiseMasterList: activeAdvertises.ref_cur_0[0] });
+    } else {
       res.status(200).send({ isSuccess: false, advertiseMasterList: [] });
     }
   } catch (error) {
@@ -508,25 +504,22 @@ userExpress.post('/getActiveAdsForUser', async (req, res, next) => {
   }
 });
 
-
-
 userExpress.post('/updateUserAdvertise', async (req, res, next) => {
   const query = 'CALL SP_UPDATE_USER_POINTS(:userId,:addId,:jsonstring)';
-  const userId = req.body.userId;
-  const addId = req.body.addId;
+  const userId = req.body.UserId;
+  const addId = req.body.adId;
   const options = { autoCommit: true };
   const advertiseBind = {
-    userId:userId,
-    addId:addId,
-    jsonstring: {  dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000  },
+    userId: userId,
+    addId: addId,
+    jsonstring: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 20000 },
   };
   try {
-
     db.doConnect(async (err, connection) => {
       try {
         const result = await connection.execute(query, advertiseBind, options);
         let parseObject = JSON.parse(result.outBinds.jsonstring);
-        return res.status(200).send({isSuccess: true,jsonstring:parseObject});
+        return res.status(200).send({ isSuccess: true, jsonstring: parseObject });
       } catch (err) {
         res.status(500).send({ errorCode: 500, errorMessage: err.message });
       } finally {
@@ -539,7 +532,6 @@ userExpress.post('/updateUserAdvertise', async (req, res, next) => {
         }
       }
     });
-    
   } catch (error) {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
   }
