@@ -71,7 +71,7 @@ exports.create = (req, res, next) => {
     authId: null,
     middleName: req.body.middleName,
     uuid: req.body.uuid,
-    phonenumber: req.body.phonenumber,
+    phonenumber: req.body.PhoneNumber,
     isOAuth: req.body.isOauthRegistered,
     isPhoneVerified:req.body.isPhoneVerified
   });
