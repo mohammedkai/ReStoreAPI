@@ -127,16 +127,34 @@ addressExpress.get('/locationMaster', async (req, res, next) => {
   };
   try {
     const locationMaster = await dbSvc.simpleExecute(query, locationmasterbind, 1, 'default');
-    if(locationMaster.ref_cur_0[0].length > 0)
-    {
-    res.status(200).send({ isSuccess: true, locationMasterList: locationMaster.ref_cur_0[0] });
-    }
-    else
-    {
+    if (locationMaster.ref_cur_0[0].length > 0) {
+      res.status(200).send({ isSuccess: true, locationMasterList: locationMaster.ref_cur_0[0] });
+    } else {
       res.status(200).send({ isSuccess: false, locationMasterList: [] });
     }
   } catch (error) {
     res.status(500).send({ errorCode: 500, errorMessage: 'Internal Server Error' });
+  }
+});
+
+addressExpress.post('/getUsersIdByIdPincode', async (req, res, next) => {
+  const query = 'CALL sp_get_useraddress_byid_pincode(:userid,:userpincode, :ref_cur_0)';
+  const address_data_binds = {
+    userid: req.body.UserId,
+    userpincode: req.body.pincode,
+    ref_cur_0: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+  };
+  try {
+    const addressData = await dbSvc.simpleExecute(query, address_data_binds, 1, 'default');
+    if (addressData.ref_cur_0[0].length > 0) {
+      res.status(200).send({ isSuccess: true, addressList: addressData.ref_cur_0[0] });
+    } else {
+      res.status(201).send({ isSuccess: true, addressList: [] });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .send({ errorCode: 500, isSuccess: false, errorMessage: 'Internal Server Error' });
   }
 });
 

@@ -21,6 +21,7 @@ const sellercontroller = require('./app/controllers/seller.controller');
 const appdatacontroller = require('./app/controllers/appdata.controller');
 const productrequestcontroller = require('./app/controllers/productrequest.controller');
 const supportcontroller = require('./app/controllers/support.controller');
+const servicescontroller = require('./app/controllers/services.controller');
 const ip = require('ip');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -95,15 +96,15 @@ const setupWorkerProcesses = () => {
  */
 
 const setUpExpress = () => {
-  app.use(express.static(path.join(__dirname+'/app/templates')));
+  app.use(express.static(path.join(__dirname + '/app/templates')));
   app.use(bodyParser.json());
-  
+
   // parse requests of content-type: application/x-www-form-urlencoded
   app.use(bodyParser.urlencoded({ extended: true }));
-  
+
   //cors
   app.use(cors());
-  
+
   app.use(httpContext.middleware);
 
   // simple route
@@ -137,30 +138,31 @@ const setUpExpress = () => {
     basicAuth({
       users: { admin: process.env.SWAGGERAUTHKEY },
       challenge: true,
-      realm: 'Imb4T3st4pp'
+      realm: 'Imb4T3st4pp',
     }),
     swaggerUi.setup(specs, { explorer: true })
   );
   app.get('/docs', swaggerUi.setup(specs, { explorer: true }));
 
-  app.use('/static', express.static(path.join(__dirname+'/app/templates')));
+  app.use('/static', express.static(path.join(__dirname + '/app/templates')));
 
   // adding routes
   app.use('/user', user);
   app.use('/users', userscontroller);
   app.use('/clustering', worker);
   app.use('/fireBase', fireBase);
-  app.use('/category', category);
-  app.use('/products', products);
-  app.use('/carts', cart);
-  app.use('/addresses', useraddress);
-  app.use('/orders', userorder);
-  app.use('/payments', payments);
+  app.use('/category', authJwt, category);
+  app.use('/products', authJwt, products);
+  app.use('/carts', authJwt, cart);
+  app.use('/addresses', authJwt, useraddress);
+  app.use('/orders', authJwt, userorder);
+  app.use('/payments', authJwt, payments);
   app.use('/sellers', sellercontroller);
-  app.use('/apps' ,appdatacontroller);
-  app.use('/request', productrequestcontroller);
+  app.use('/apps', appdatacontroller);
+  app.use('/request', authJwt, productrequestcontroller);
   app.use('/oauthregister', outhregistercontroller);
-  app.use('/support', supportcontroller);
+  app.use('/support', authJwt, supportcontroller);
+  app.use('/service', authJwt, servicescontroller);
 
   app.use((err, req, res, next) => {
     logger.error('Error occured', { message: err.message, stack: err.stack });
