@@ -21,9 +21,13 @@ function verifyToken(req, res, next) {
 
   jwt.verify(token, jwtKey, (err, decoded) => {
     if (err) {
-      return res.status(401).send({ message: 'Unauthorized!',isSuccess: false });
+      return res.status(401).send({ message: 'Unauthorized! Invalid Token',isSuccess: false });
     }
     // req.userId = decoded.id;
+
+    if(decoded.uuid !== req.body.uuid || decoded.username !== req.body.login){
+      res.status(401).send({ message: 'Unauthorized! Please check credentials',isSuccess: false });
+    }
 
     next();
   });

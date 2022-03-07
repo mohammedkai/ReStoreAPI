@@ -8,6 +8,8 @@ let refreshTokens = [];
 const jwtKey = process.env.JWT_SECRET;
 const refreshTokenSecret = process.env.REFRESH_SECRET;
 const getTimeStamp = require('../utils/dateUtil');
+const moment = require('moment');
+
 
 // constructor
 const User = function (user) {
@@ -73,7 +75,7 @@ function insertUser(user, callback) {
 
 function authenticateUser(user, callback) {
   const sql =
-    'select u.PASSWORD,u.UUID,um.isemailverified from users u JOIN users_metadata_table um on u.id= um.usersid where u.login=:login and u.ISACTIVE=1';
+    'select u.id,u.PASSWORD,u.UUID,um.isemailverified from users u JOIN users_metadata_table um on u.id= um.usersid where u.login=:login and u.ISACTIVE=1';
   db.doConnect((err, connection) => {
     console.log('INFO: Database - Retrieving CURRENT_DATE FROM DUAL');
     if (err) {
@@ -332,7 +334,11 @@ User.authenticate = function (newUser, result) {
       return result({ message: 'Incorrect Email or Password.', status: 201, isSuccess: false });
     }
 
-    const accessToken = jwt.sign({ username: newUser.login }, jwtKey, {
+    var startTime = moment().utcOffset(330).format('DD-MMM-YYYY HH:mm:ss');
+    var endTime = moment().add(14, 'minutes').utcOffset(330).format('DD-MMM-YYYY HH:mm:ss');
+
+
+    const accessToken = jwt.sign({ username: newUser.login,uuid:res.UUID,userId:res.id,startTime,endTime }, jwtKey, {
       algorithm: 'HS256',
       expiresIn: '15m',
     });
