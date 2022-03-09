@@ -373,6 +373,7 @@ User.logout = function (token, result) {
 
 User.refreshToken = function (user, result) {
   const token = user.authId;
+  const uuid = user.uuid;
 
   if (!token) {
     return result({ message: 'Refresh token cannot be empty.', status: 401, isSuccess: false });
@@ -387,7 +388,10 @@ User.refreshToken = function (user, result) {
       return result({ message: 'Refresh Token Invalid.', status: 403, isSuccess: false });
     }
 
-    const accessToken = jwt.sign({ username: user.login }, jwtKey, {
+    var startTime = moment().utcOffset(330).format('DD-MMM-YYYY HH:mm:ss');
+    var endTime = moment().add(14, 'minutes').utcOffset(330).format('DD-MMM-YYYY HH:mm:ss');
+
+    const accessToken = jwt.sign({ username: user.login,uuid,startTime,endTime }, jwtKey, {
       algorithm: 'HS256',
       expiresIn: '20m',
     });

@@ -13,6 +13,8 @@ const refreshTokenSecret = process.env.REFRESH_SECRET;
 const jwt = require('jsonwebtoken');
 const { BlobServiceClient, StorageSharedKeyCredential } = require('@azure/storage-blob');
 const sendEmail = require('../utils/emailHelper');
+const moment = require('moment');
+
 
 async function initAzureBlob() {
   const account = process.env.ACCOUNT_NAME || '';
@@ -220,14 +222,18 @@ sellerExpress.post('/authenticate', async (req, res, next) => {
       try {
         const result = await connection.execute(query, seller_list_binds, options);
         if (result.outBinds.isauthenticate === 'true') {
-          const accessToken = jwt.sign({ username: login }, jwtKey, {
+
+          var startTime = moment().utcOffset(330).format('DD-MMM-YYYY HH:mm:ss');
+          var endTime = moment().add(14, 'minutes').utcOffset(330).format('DD-MMM-YYYY HH:mm:ss');
+
+          const accessToken = jwt.sign({ username: login,startTime,endTime }, jwtKey, {
             algorithm: 'HS256',
             expiresIn: '15m',
           });
 
           const refreshToken = jwt.sign({ login }, refreshTokenSecret, {
             algorithm: 'HS256',
-            expiresIn: '30m',
+            expiresIn: '15d',
           });
           refreshTokens.push(refreshToken);
 
