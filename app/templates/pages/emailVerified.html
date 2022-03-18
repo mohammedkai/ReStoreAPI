@@ -1,62 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Email Verification</title>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-        <link rel="stylesheet" href="../css/emailVerify.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verified</title>
+    <style>
+      /* set your own font */
+        @import url('https://fonts.googleapis.com/css?family=Varela+Round');
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: Varela Round, 'Segoe UI', 'Arial', 'san serif';
+}
+
+img {
+  display: inline-block;
+}
+.container {
+  max-width: 500px;
+  margin: 20px auto;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, .1);
+  /* // border-top: 3px solid #016FB9; */
+  min-height: 100px;
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, #0267C1, #D65108);
+  }
+}
+
+.logo {
+  display: flex;
+  margin: 30px auto 0;
+  align-items: center;
+  justify-content: center;
+  /* // padding: 20px; */
+  a {
+    display: block;
+    width: 30px;
+    height: 30px;
+    /* // overflow: hidden; */
+  }
+  img {
+    width: 180px;
+  }
+  .c-name {
+    display: inline-block;
+    font-weight: 600;
+  }
+}
+
+.thumbs {
+  width: 100px;
+  margin: auto;
+  height: 136px;
+  img {
+    width: 100%;
+  }
+}
+
+.illustration {
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, .05);
+  border-radius: 0 0 50% 50% / 1%;
+  text-align: center;
+}
+
+.illustration img {
+  width: 70%;
+  margin: 50px auto;
+}
+
+.separator {
+  display: block;
+  height: 3px;
+  width: 70%;
+  margin: 10px auto;
+  background-color: rgba(0, 0, 0, .05);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 33%;
+    border-radius: inherit;
+    opacity: .05;
+  }
+  &::before {
+    left: 0;
+    background: #EFA00B;
+  }
+  &::after {
+    left: initial;
+    right: 0;
+    background: #D65108;
+  }
+}
+
+.hgroup {
+  text-align: center;
+  padding: 50px 30px 30px;
+}
+
+.name {
+  display: block;
+  /* // text-transform: uppercase;
+  // margin-bottom: 5px; */
+  /* color: #0267C1; */
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.hgroup h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+.hgroup h2 {
+  font-size: 19px;
+}
+
+.hgroup p {
+  font-size: 15px;
+  color: white;
+  margin-top: 15px;
+  text-align: justify;
+  line-height: 25px;
+}
+
+.items {
+  padding: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.item {
+  margin-bottom: 10px;
+  text-align: center;
+  width: 100%;
+  margin: 0 auto 50px;
+}
 
 
+.item .icon {
+    margin-bottom: 10px;
+}
+
+.item .icon img {
+  width: 60px;
+}
+
+.item .title {
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.item .subtitle {
+  font-size: 13px;
+  color: slategrey;
+  padding: 1rem;
+}
+
+.button-wrap {
+  text-align: center;
+  padding: 2rem;
+}
+
+button.explore {
+  padding: 15px 25px;
+  font: inherit;
+  background: linear-gradient(to right, #0267C1, #0280EF);
+  border-radius: 50px;
+  border: 0;
+  color: #fff;
+  margin: auto;
+  display: inline-block;
+  transition: all .2s ease-in-out;
+  cursor: pointer;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
+}
+
+button.explore:hover {
+  transform: translateY(-5px);
+    box-shadow: 0 15px 10px -7px rgba(0, 0, 0, .1);
+}
+
+
+footer {
+  font-size: 12px;
+  color: slategrey;
+  text-align: center;
+  padding: 30px;
+}
+
+.rad {
+  margin: 0!important;
+  text-align: center!important;
+  font-size: 18px!important;
+}
+
+.raised {
+  font-size: 16px;
+  color: #777;
+  display: block;
+  color: steelblue;
+}
+    </style>
 </head>
-
-<body>
-	
-	<div class="gry-box">
-		<div class="white-box" style="display:$[DISPLAY_SUCCESS];">
-			
-		<p class=" p1-txt">Account Activated</p>
-		<img src="../images/emailVerify.jpg" class="img1">
-		<p class=" p2-txt">Hello $[EMAILID],</p>
-		<p class="para p3-txt">Thank you, your email has been verified. Your account is now active.<br>
-		Please use the link below to login to your account.</p>
-
-
-		 <button  onclick="window.location.href = 'https://www.w3schools.com/'" class="btn" id="btn">Login To Your Account</button> 
-
-		<p class="para p4-txt">Thank You For Choosing ReStore.</p>
-
-		</div>
-		
-		<div class="white-box" style="display:$[DISPLAY_FAILURE];">
-			
-		<p class=" p1-txt">Invalid Token</p>
-		<img src="../images/emailVerify.jpg" class="img1">
-		<p class=" p2-txt">Hello $[EMAILID],</p>
-		<p class="para p3-txt" style="margin-left: 234px;">Token expired, please contact support.</p>
-
-
-		<p class="para p4-txt">Thank You For Choosing ReStore.</p>
-
-		</div>
-
-		<p class="p5-txt">	&copy; ReStore, Inc. All rights reserved.<br>
-		123 Incredible street, SomeTown, OR, 87466 US, (123) 456-7890</p>
-<div class="navigation">
-		<a href="#"> <i class="icon fa fa-linkedin-square"></i> </a>
-        <a href="#"> <i class="icon fa fa-twitter"></i> </a>
-        <a href="#"> <i class="icon fa fa-rss"></i> </a>
-</div>
-		<p class="p6-txt">You recived this email because you signed up for ReStore</p>
-
-        <a class="p7-txt" href="#">unsubscribe</a>
-
-
-
-	</div>
+<body style="background-color: #2D3445;">
+    <div class="container">
+        <div class="logo"><img src="img/logo3.png" alt="restore" border="0" style="background-color: transparent; border-radius: 5px;">
+        </div>
+        <div class="illustration">
+          <div class="hgroup">
+            <span class="name">Hello, <a style="color: #0267C1;">Ashish</a></span>
+            <h1>Thank you for Signing Up</h1>
+            <div class="thumbs">
+              <a href="https://re-store.co.in/"><img src="https://i.ibb.co/2g7tS2d/good.png" alt="good" border="0"></a>
+            </div>
+            <p class="rad">Thank you, your email has been verified. Your account is now active. Please use the link below to login to your account.</p>
+          </div>
+        </div>
+      
+        <div class="hgroup">
+          <p>
+            <button class="explore" style="display: flex; justify-content: center; align-items: center;">
+              <a href="" style="text-decoration: none; color: white;">Login to your account</a>
+            </button>
+            <br>
+            <p class="rad">
+              Thank You For Choosing ReStore.
+            </p><br>
+          </p>
+      
+        </div>
+        <div class="hgroup">
+          <h2 style="color: #0267C1;">What we offer</h2>
+        </div>
+        <div class="items">
+          <div class="item">
+            <div class="icon">
+              <img src="https://i.ibb.co/tHZQHTB/desktop.png" alt="desktop" border="0">
+            </div>
+            <div class="title" style="color: #0267C1;">PC Components</div>
+            <div class="subtitle" style="color: white;">
+              ReStore is a growing marketplace that provides a wide range of new, used & refurbished peripherals inventory and services related to the computers which come from trusted Sellers & Technicians.
+            </div>
+          </div>
+          <div class="item">
+            <div class="icon">
+              <img src="https://i.ibb.co/zSD3NkX/smartphone.png" alt="smartphone" border="0">
+            </div>
+            <div class="title" style="color: #0267C1;">24/7 Support</div>
+            <div class="subtitle" style="color: white;">
+              Didn't find product you were
+              looking for on our app ?. No worries, Request Product feature allows you
+              to create a product request and we will try to arrange it for you.
+            </div>
+          </div>
+        </div>
+        <div class="button-wrap">
+          <button class="explore">
+            View more
+          </button>
+        </div>
+        <footer style="color:#828999;">
+          ReStore © 2022
+          <br>
+          If these emails get annoying, please feel free to <a href="https://re-store.co.in" style="text-decoration: none; color:#828999;">Unsubscribe</a>.
+        </footer>
+      </div>
 </body>
-
 </html>
